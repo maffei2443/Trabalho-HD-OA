@@ -5,6 +5,6 @@ using namespace std;
 
 
 int main(void){
-	cout << Time :: seek_mean <<  endl;
+	cout << Time :: SEEK_MEAN <<  endl;
 	return 0;
 }
