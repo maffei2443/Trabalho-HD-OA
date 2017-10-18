@@ -1,25 +1,30 @@
-#include    <iostream>
+#include "view.hpp"
+#include <iostream>
 using namespace std;
-void menu_principal(void){
-	cout << ("1 - Escrever arquivo\n");
+
+void menu_principal(){
+	cout << "1 - Escrever arquivo\n";
 	cout << "2 - Ler arquivo\n";
 	cout << "3 - Apagar arquivo\n";
-	cout << "Mostrar tabela FAT\n";
-	cout << "Sair\n";
+	cout << "4 - Mostrar tabela FAT\n";
+	cout << "5 - Sair\n";
 }
 
-inline void opcao1(){
-	cout << "Digite o nome do arquivo a ser lido do HD\n";
+void escreve_HD_virtual(){
+	cout << "Digite o nome do arquivo a ser lido do HD real e\n";
+	cout << "gravado no HD virtual.\n";
 }
 
-inline void opcao2(){
-	cout << "Digite o nome do arquivo a ser garavado no HD real\n";
+void le_HD_virtual(){
+	cout << "Digite o nome do arquivo a ser lido do HD virtual e\n";
+	cout << "gravado no HD real.\n";
+
 }
 
-inline void opcao3(){
-	cout << "Digite o nome do arquivo a ser apagado (do HD virtual)\n";
+void apaga_HD_virtual(){
+	cout << "Digite o nome do arquivo a ser apagado do HD virtual.\n";
 }
 
-void opcao4(){
-//
+void mostra_FAT(){
+	cout << "Implementar impressao da tabela FAT\n";
 }

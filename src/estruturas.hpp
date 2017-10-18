@@ -9,7 +9,7 @@ using namespace std;
 // Unidades basicas de armazenamento (num HD orientado a setores)
 class Sector {
 private:
-	const static ui MAX = 512;
+	const static ui MAX = 512;		/// 512 bytes por setor
 public:
 	unsigned char byte_s[MAX];	//[512];
 	inline unsigned char * g_byte_s(){return byte_s;}
@@ -20,7 +20,7 @@ class Cluster{
 private:
 	const static ui MAX = 4;
 	int qtd;
-	vector<Sector> sector;		// Contem 4 setores.
+	vector<Sector> sector;		// 1 cluster contem 4 setores.
 public:
 	Cluster(){qtd = 0;	sector.resize(MAX);}
 
@@ -46,7 +46,7 @@ public:
 
 class Track{
 private:
-	const static int MAX = 60;
+	const static int MAX = 60;	// 60 setores por trilha
 public:
 	vector<Sector> sector;
 
@@ -61,7 +61,7 @@ public:
 
 class Cylinder{
 private:
-	const static int MAX = 60;
+	const static int MAX = 5;	// 5 trilhas por cilindro
 public:
 	vector<Track> track;
 
@@ -71,50 +71,53 @@ public:
 	inline vector<Track> g_tracks()const{return track;}
 };
 
+
 // Final das Estruturas basicas
 class Fatlist{
 private:
-	const static int MAX = 100;
-	string file_name;
+	const static int MAX_NAME = 100;		// 
+	string name;
 	ui first_sector;
 public:
-	inline string g_file_name(){return file_name;}
+	inline string g_file_name(){return name;}
 	inline ui g_first_sector(){return first_sector;}
 	
-	inline void s_file_name(const string& neo){if(neo.size() < MAX)	file_name = neo;}
+	inline void s_name(const string& neo){if(neo.size() < MAX_NAME)	name = neo;}
 	inline void s_first_sector(const ui& first){first_sector = first;}
+	Fatlist(){}
+	Fatlist(string const& file, ui const& first);
 };
 
-class Fatent{
-	ui used;
-	ui eof;
-	ui next;
+class FatEnt{		// Entrada para cada setor do HD
 public:
-	inline ui g_used(){return used;}
-	inline ui g_eof(){return eof;}
-	inline ui g_next(){return next;}
-
-	inline void s_used(const ui& neo){used = neo;}
-	inline void s_eof(const ui& neo){eof = neo;}
-	inline void s_next(const ui& neo){next = neo;}
+	bool used;
+	bool eof;
+	ui next;		// Soh tem de ser valido se eof == false
+	///////////////////
+	FatEnt();
+	FatEnt(bool usedd, bool eoff, ui nextt): used(usedd), eof(eoff), next(nextt){}
+	~FatEnt();
 };
 
 
-class Fat_table{
+class FatTable{
 public:
-	vector <Fatlist> name_file;
-	vector <Fatent> control;
+	vector <Fatlist> fatlist;
+	vector <FatEnt> fatent;
+	FatTable() : fatlist(0), fatent(0){}
+	void insert(string name, ui size);
 };
 
-class HardDrive{
-	static const int TRACK_SURFACE = 10;
-	const ui MAX_CYLINDER;
-	vector <Cylinder> cylinder;
+class HardDrive{							// Convencao: primeiro cilindro a ser preenchido eh o mais externo
+	static const int TRACK_SURFACE = 10;	// 10 trilhas por superficie
+ 	
+ 	vector <Cylinder> cylinder;
 public:
 //	Pratos pratos[10];
-	HardDrive(const ui& number): MAX_CYLINDER(number){cylinder.resize(number);}
-	inline Cylinder g_cylinder(const ui& i){return cylinder[i%MAX_CYLINDER];}
+	HardDrive(){cylinder.resize(TRACK_SURFACE);}
+	inline Cylinder g_cylinder(const ui& i){return cylinder[i%TRACK_SURFACE];}
 	inline vector<Cylinder> g_cylinders(){return cylinder;}
+
 };
 
 class Time{	// Modulo passivo; apenas disponibiliza tempos (obs: tempos em 'ms')

@@ -1,10 +1,11 @@
 #ifndef _VIEW_HPP_
 #define _VIEW_PHP_
-#include<cstdfwd>
-void menu_principal(void);
-void opcao1(void);
-void opcao2(void);
-void opcao3(void);
-void opcao4(void);	// Devvve receber a TABELA FA como parametro
+#include<iosfwd>
+
+void menu_principal();
+void escreve_HD_virtual();
+void le_HD_virtual();
+void apaga_HD_virtual();
+void mostra_FAT();	// Devvve receber a TABELA FA como parametro
 
 #endif
