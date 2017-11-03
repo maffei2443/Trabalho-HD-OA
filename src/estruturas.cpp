@@ -24,9 +24,9 @@ void FatTable :: insert(const string& name, const ui& size){
 
 ui HardDrive :: insert_file2(const ui& cylinder, const string& file, ui at = 0){
 
-	if((at % TRACK_SURFACE) == TRACK_SURFACE - 1)	return TRACK_SURFACE;	// Tentou insrecao em todos os cilindros e mesmo assim nao deu certo
+	if((at % CYLINDERS) == CYLINDERS - 1)	return CYLINDERS;	// Tentou insrecao em todos os cilindros e mesmo assim nao deu certo
 
-	if(this->cylinder[cylinder%TRACK_SURFACE].g_full() == true)
+	if(this->cylinder[cylinder%CYLINDERS].g_full() == true)
 		return this->insert_file2(cylinder, file,at+1);
 	else{		
 		// TODO : implementar a insercao no cilindro
@@ -45,7 +45,7 @@ bool HardDrive :: insert_file(){
 	cout << file << endl;
 	bool again = true;
 	ui ret = insert_file2(0, file);
-	if( ret == TRACK_SURFACE ){
+	if( ret == CYLINDERS ){
 		cout << "HD lotado\n";
 		return false;
 	}

@@ -3,84 +3,20 @@
 
 #include <vector>
 #include <string>
+#include <set>
+
 using namespace std;
 #define ui unsigned int
+class FatEnt;
+class FatList;
+class FatTable;
+class Sector;
+class Cluster;
+class Track;
+class Cylinder;
+class HardDrive;
+class Time;
 
-// Unidades basicas de armazenamento (num HD orientado a setores)
-class Sector {
-private:
-	bool full;
-	const static ui MAX = 512;		/// 512 bytes por setor
-public:
-	Sector(): full(false){}
-	unsigned char byte_s[MAX];	//[512];
-	inline unsigned char * g_byte_s(){return byte_s;}
-	
-};
-
-// 1 cluster contem 4 setores.
-class Cluster{
-private:
-	bool full;
-	const static ui MAX = 4;
-	ui qtd;
-	vector<Sector> sector;		
-public:
-	Cluster() : qtd(0), full(false){sector.resize(MAX);}
-
-	inline Sector g_sector(const ui& i)const{return sector[i%MAX];}
-	inline vector<Sector> g_sectors()const{return sector;}
-
-	void s_sectors(vector<Sector> sec){
-		ui i=0;
-		for(vector<Sector>::iterator it = sec.begin(); it != sec.end() && i < 4; it++, i++)
-			sector[i] = sec[i];		
-	}
-	void insert_sec(const Sector& sec){
-		if(qtd < MAX){
-			sector[qtd] = sec;
-			qtd++;
-		}
-	}
-
-	void insert_cluster(const Cluster& clus){
-		sector = clus.g_sectors();
-	}
-};
-
-class Track{
-private:
-public:
-	const static ui MAX_SECTOR = 60;	// 60 setores por trilha; nesse trabalho, 4 clusters poranto por trilha
-	const ui SIZE_CLUSTER;				// In terms of sectors
-	vector<Sector> sector;
-
-	Track(): SIZE_CLUSTER(15){sector.resize(MAX_SECTOR);}
-	Track(const ui& tam_sector): SIZE_CLUSTER(tam_sector%MAX_SECTOR){sector.resize(MAX_SECTOR);}
-
-	inline Sector g_sector(const ui& i)const{return sector[i%MAX_SECTOR];}
-	inline vector<Sector> g_sectors()const{return sector;}
-
-	void s_sector(const ui& i, const Sector& neo){sector[i%MAX_SECTOR] = neo;}
-
-};
-
-class Cylinder{
-private:
-	const static ui MAX = 5;	// 5 trilhas por cilindro
-	bool full;					// @ se false, ainda tem espaco no cilindro
-public:
-	vector<Track> track;
-
-	Cylinder():full(false){track.resize(MAX);}
-
-	inline Track g_track(const ui& i)const{return track[i%MAX];}
-	inline vector<Track> g_tracks()const{return track;}
-	inline bool g_full(){return full;}
-};
-
-
-// Final das Estruturas basicas
 class Fatlist{
 private:
 	const static ui MAX_NAME = 100;		// 
@@ -91,8 +27,9 @@ public:
 	inline ui g_first_sector(){return first_sector;}
 	
 	inline void s_name(const string& neo){if(neo.size() < MAX_NAME)	name = neo;}		// TODO: adicionar aviso de que nao foi possivela insercao E a causa.
-	Fatlist(){name.reserve(100);}
+	Fatlist(){}
 	Fatlist(string const& file, ui const& first);
+	~Fatlist(){}
 };
 
 class FatEnt{		// Entrada para cada setor do HD
@@ -103,34 +40,130 @@ public:
 	///////////////////
 	FatEnt(): used(false), eof(true), next(-1){}
 	FatEnt(bool usedd, bool eoff, ui nextt): used(usedd), eof(eoff), next(nextt){}
-	~FatEnt();
+	~FatEnt(){};
 };
 
 
 class FatTable{
+private:
 public:
 	vector <Fatlist> fatlist;
 	vector <FatEnt> fatent;
 	FatTable() : fatlist(0), fatent(0){}
+	~FatTable(){fatlist.resize(0); fatent.resize(0);}
 	void insert(const string& name, const ui& size);
 };
 
-class HardDrive{							// Convencao: primeiro cilindro a ser preenchido eh o mais externo
-	static const ui TRACK_SURFACE = 10;	// 10 trilhas por superficie
- 	bool full;
- 	vector <Cylinder> cylinder;
- 	ui insert_file(const ui& cylinder, const string& file);
+// Unidades basicas de armazenamento (num HD orientado a setores)
+class Sector {
 private:
+	bool full;
+	ui used;
+	const static ui MAX = 512;		/// 512 bytes por setor
+public:
+	Sector(): full(false), used(0){}
+	unsigned char byte_s[MAX];	//[512];
+	inline unsigned char * g_byte_s(){return byte_s;}	
+};
+
+// 1 cluster contem 4 setores.
+class Cluster{
+private:
+	bool full;
+	ui used;							// usar tbm como bool !
+	const static ui MAX = 4;
+	vector<Sector> sector;		
+
+public:
+	Cluster() : used(0), full(false){sector.resize(MAX);}
+
+	inline Sector g_sector(const ui& i)const{return sector[i%MAX];}
+	inline vector<Sector> g_sectors()const{return sector;}
+
+	bool insert_sec(const Sector& sec);
+};
+
+class Track{
+private:
+	bool full;
+	ui used;
+	set<int> set_used;
+	const static ui MAX_SECTOR = 60;	// 60 setores por trilha
+	const static ui MAX_CLUSTERS = 4;	// 15 clusters por trilha
+	const static ui CLUSTERS = MAX_SECTOR / MAX_CLUSTERS;
+public:
+	vector<Sector> sector;
+
+	Track(): full(false), used(0) {sector.resize(CLUSTERS);}
+
+	inline Sector g_sector(const ui& i)const{return sector[i%MAX_SECTOR];}
+	inline vector<Sector> g_sectors()const{return sector;}
+
+	void s_sector(const ui& i, const Sector& neo){sector[i%MAX_SECTOR] = neo;}
+	constexpr static ui g_CLUSTERS(){return CLUSTERS;}
+};
+
+class Cylinder{
+private:
+	bool full;					// @ se false, ainda tem espaco no cilindro
+	ui used;
+	const static ui MAX = 5;	// 5 trilhas por cilindro
+	const static ui MAX_CLUSTERS = MAX * Track :: g_CLUSTERS();	// 5 trilhas por cilindro
+	set<int> set_used;
+public:
+	vector<Track> track;
+
+	Cylinder():full(false), used(0){track.resize(MAX);}
+
+	inline Track g_track(const ui& i)const{return track[i%MAX];}
+	inline vector<Track> g_tracks()const{return track;}
+	inline bool g_full(){return full;}
+	
+	constexpr static ui g_CLUSTERS(){return MAX_CLUSTERS;}
+};
+
+class HardDrive{							// Convencao: primeiro cilindro a ser preenchido eh o mais externo
+private:
+ 	bool full;
+ 	ui used;						// Clusters usados.
+	static const ui CYLINDERS = 10;	// 10 trilhas por superficie
+	
+	FatTable fat;
+
+ 	const static ui MAX_CLUSTERS = CYLINDERS * Cylinder :: g_CLUSTERS();
+
+ 	set<int> set_used;
+
+ 	vector <Cylinder> cylinder;
+
 	ui insert_file2(const ui& cylinder, const string&, ui);
 public:
-	static const int g_track_surface(){return TRACK_SURFACE;}
-//	Pratos pratos[10];
-	HardDrive(): full(false){cylinder.resize(TRACK_SURFACE);}
-	inline Cylinder g_cylinder(const ui& i){return cylinder[i%TRACK_SURFACE];}
-	inline vector<Cylinder> g_cylinders(){return cylinder;}
+	
+	static const int g_n_cylinders(){return CYLINDERS;}
+
+	HardDrive(): full(false), used(0){cylinder.resize(CYLINDERS);}
+	~HardDrive(){cylinder.resize(0);}
+	inline const Cylinder g_cylinder(const ui& i){return cylinder[i%CYLINDERS];}
+//	inline vector<Cylinder> g_cylinders(){return cylinder;}
 
 	bool insert_file();
+	constexpr static ui g_CLUSTERS(){return MAX_CLUSTERS;}
 };
+
+
+
+
+
+
+
+
+
+
+
+
+// Final das Estruturas basicas
+
+
 
 class Time{	// Modulo passivo; apenas disponibiliza tempos (obs: tempos em 'ms')
 private:

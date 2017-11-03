@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdio>
 #include <typeinfo>
 #include <vector>
 #include "view.hpp"
@@ -18,11 +19,14 @@ using namespace std;
 int main(void){
 
 	HardDrive myHD;	
-	auto x = myHD.g_cylinders();
-	cout << x.size() << endl;
+	auto x = myHD.g_n_cylinders();
+	cout << x << endl;
 
 	myHD.insert_file();
 
+	cout << "Clusters por trilha :: " << Track :: g_CLUSTERS() << endl;
+	cout << "Clusters por cilindro :: " << Cylinder :: g_CLUSTERS() << endl;
+	cout << "Clusters por HD :: " << HardDrive :: g_CLUSTERS() << endl;
 	return 10;
 
 
