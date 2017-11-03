@@ -1,10 +1,10 @@
 #include <iostream>
 #include <typeinfo>
 #include <vector>
-#include "estruturas.hpp"
 #include "view.hpp"
+#include "estruturas.hpp"
 
-#define CLEAR for(int i =0; i < 50; i++)	cout << '\n';
+#define CLEAR system("clear || cls")
 
 /*#ifdef _WIN32			// Tah printando caracteres estranhos :(
 #define CLEAR system("cls")
@@ -16,24 +16,60 @@ using namespace std;
 
 
 int main(void){
-	vector<int> v(2, 1);
-	for(auto x : v){
-		cout << x << endl;
-	}
+
+	HardDrive myHD;	
+	auto x = myHD.g_cylinders();
+	cout << x.size() << endl;
+
+	myHD.insert_file();
+
+	return 10;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	cout << "Zueira\n";
 	char op = 'e';
 	while(1){
 		CLEAR;
-		menu_principal();
+		view :: menu_principal();
 		cin >> op;
 		getchar();
 		if(op == '1')
-			escreve_HD_virtual();
+			view :: escreve_HD_virtual();
 		else if(op == '2')		
-			le_HD_virtual();
+			view :: le_HD_virtual();
 		else if(op == '3')
-			apaga_HD_virtual();
+			view :: apaga_HD_virtual();
 		else if(op == '4')
-			mostra_FAT();
+			view :: mostra_FAT();
 		else if(op == '5')
 			break;
 		getchar();
