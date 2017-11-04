@@ -19,6 +19,7 @@ class Track;
 class Cylinder;
 class HardDrive;
 class Time;
+class ClusterFake;
 
 // Specify size of Objects those store data in erms os BYTES.
 class Qtt{
@@ -29,6 +30,15 @@ public:
 	constexpr static ui CLUSTER = 4 * SECTOR;
 	constexpr static ui TRACK = 15 * CLUSTER;
 	constexpr static ui CYLINDER = 5 * TRACK;
+};
+
+// Classe que vai ajudar a gravar o ultimo setor no disco.
+class ClusterFake{
+public:
+	char cluster[Qtt :: CLUSTER];
+	ui last;	// Indica qual eh o ultimo  setor do cluster (de 0 a 3)
+	ui size;	// Indica o offset, A PARTIR DO INICIO, de dados uteis
+	ClusterFake(const char*, const ui&, const ui&);
 };
 
 
@@ -66,36 +76,40 @@ public:
 	vector <FatEnt> fatent;
 	FatTable() : fatlist(0), fatent(0){}
 	~FatTable(){fatlist.resize(0); fatent.resize(0);}
-	void insert(const string& name, const ui& size);
+	ui insert(const string& name, const ui& size);
 };
 
 // Unidades basicas de armazenamento (num HD orientado a setores)
 class Sector {
 private:
-	bool full;
 	ui used;
+	bool full;
+	int next;
 	const static ui MAX = 512;		/// 512 bytes por setor
+	unsigned char byte_s[MAX];	//[512];
 public:
 	Sector(): full(false), used(0){}
-	unsigned char byte_s[MAX];	//[512];
-	inline unsigned char * g_byte_s(){return byte_s;}	
+	const inline unsigned char * g_byte_s(){return byte_s;}
+	bool insert(const char cluster[Qtt :: CLUSTER], const ui&);
 };
 
 // 1 cluster contem 4 setores.
 class Cluster{
 private:
-	bool full;
-	ui used;							// usar tbm como bool !
+	ui eof;		// Offset que indica o final do arquivo dentrodo cluster
+	bool used;							// usar tbm como bool !
+	int next;
 	const static ui MAX = 4;
 	vector<Sector> sector;		
 
 public:
-	Cluster() : used(0), full(false){sector.resize(MAX);}
+	Cluster() : used(0){sector.resize(this->MAX);}
 
 	inline Sector g_sector(const ui& i)const{return sector[i%MAX];}
 	inline vector<Sector> g_sectors()const{return sector;}
+	inline bool g_used(){return used;}
 
-	bool insert_sec(const Sector& sec);
+	ui insert(const char cluster[Qtt :: CLUSTER]);
 };
 
 class Track{
@@ -106,15 +120,17 @@ private:
 	const static ui MAX_SECTOR = 60;	// 60 setores por trilha
 	const static ui MAX_CLUSTERS = 4;	// 15 clusters por trilha
 	const static ui CLUSTERS = MAX_SECTOR / MAX_CLUSTERS;
+	vector<Cluster> cluster;
 public:
-	vector<Sector> sector;
 
-	Track(): full(false), used(0) {sector.resize(CLUSTERS);}
+	Track(): full(false), used(0) {cluster.resize(CLUSTERS);}
 
-	inline Sector g_sector(const ui& i)const{return sector[i%MAX_SECTOR];}
-	inline vector<Sector> g_sectors()const{return sector;}
-
-	void s_sector(const ui& i, const Sector& neo){sector[i%MAX_SECTOR] = neo;}
+	inline Cluster g_cluster(const ui& i)const{return cluster[i%this->CLUSTERS];}
+	inline vector<Cluster> g_clusters()const{return cluster;}
+	inline bool g_full(){return full;}
+	bool s_full();
+//	void s_cluster(const ui& i, const Sector& neo){cluster[i%MAX_SECTOR] = neo;}
+	ui insert(const char cluster[Qtt :: CLUSTER]);
 	constexpr static ui g_CLUSTERS(){return CLUSTERS;}
 };
 
@@ -122,11 +138,12 @@ class Cylinder{
 private:
 	bool full;					// @ se false, ainda tem espaco no cilindro
 	ui used;
+	set<ui> set_used;
 	const static ui MAX = 5;	// 5 trilhas por cilindro
 	const static ui MAX_CLUSTERS = MAX * Track :: g_CLUSTERS();	// 5 trilhas por cilindro
-	set<ui> set_used;
-public:
 	vector<Track> track;
+	bool s_full();
+public:
 
 	Cylinder():full(false), used(0){track.resize(MAX);}
 
@@ -134,7 +151,7 @@ public:
 	inline vector<Track> g_tracks()const{return track;}
 	inline bool g_full(){return full;}
 	
-	bool insert(const char sec[512]);	// Setor recebi que deve ser inserido na primeira trilha
+	ui insert(const char sec[512]);	// Setor recebi que deve ser inserido na primeira trilha
 	constexpr static ui g_CLUSTERS(){return MAX_CLUSTERS;}
 };
 
@@ -161,15 +178,13 @@ public:
 	HardDrive(): full(false), used(0){cylinder.resize(CYLINDERS);}
 	~HardDrive(){cylinder.resize(0);}
 	inline const Cylinder g_cylinder(const ui& i){return cylinder[i%CYLINDERS];}
-	bool set_full();
+	ui set_full();
 //	inline vector<Cylinder> g_cylinders(){return cylinder;}
 
 	bool insert_file();
 	constexpr static ui g_CLUSTERS(){return MAX_CLUSTERS;}
+
 };
-
-
-
 
 
 

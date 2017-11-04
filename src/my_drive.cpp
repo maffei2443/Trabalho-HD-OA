@@ -19,19 +19,21 @@
 
 using namespace std;
 
+// TODO: gravar o arquivo por CLUSTERS, e o ultimo cluster setor a setor.
 
 int main(void){
 
 	HardDrive myHD;	
 	auto x = myHD.g_n_cylinders();
 	cout << x << endl;
-
-	myHD.insert_file();
-	myHD.insert_file();
+	for(int i =0; i < 40; i++)
+		myHD.insert_file();
 
 	cout << "Clusters por trilha :: " << Track :: g_CLUSTERS() << endl;
 	cout << "Clusters por cilindro :: " << Cylinder :: g_CLUSTERS() << endl;
 	cout << "Clusters por HD :: " << HardDrive :: g_CLUSTERS() << endl;
+	
+	return 15;
 	
 	ifstream file("teste.txt", ifstream :: binary);
 	if(file){

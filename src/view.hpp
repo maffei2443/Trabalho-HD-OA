@@ -18,5 +18,5 @@ namespace view{
 	void lotado_HD();
 	void inseriu_cilindro(ui);
 
-}
+};
 #endif

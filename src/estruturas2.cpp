@@ -9,17 +9,6 @@
 #include <math.h>	// for 'ceil'
 using namespace std;
 
-
-// class ClusterFake
-// n : em qual setor termina o cluster
-ClusterFake :: ClusterFake(const char cluster[Qtt :: CLUSTER], const ui& n, const ui& size){
-	for(ui i = 0; i < Qtt :: CLUSTER; i++)
-		this->cluster[i] = cluster[i];
-	this->last = n;
-	this->size = size;
-}
-
-
 // class Fatlist
 
 Fatlist :: Fatlist(string const& file, ui const& first){
@@ -33,65 +22,14 @@ Fatlist :: Fatlist(string const& file, ui const& first){
 ui FatTable :: insert(const string& name, const ui& size){
 	
 }
-
-// class Sector
-// private
-
-// public
-
-// 'pos' identifica se eh o setor de numero 0, 1, 2 ou 3.
-bool Sector :: insert(const char cluster[Qtt :: CLUSTER], const ui& pos){
-	if(pos == 3);	// TODO: impllementar insercao diferenciada; talvez uma struct
-					// que contenha cluster e o indice da posicao final; de esse
-					// indice > 1024, nao eh o ultimo setor do cluster.
-	else{
-		for(ui i = pos * Qtt :: SECTOR; i < (pos+1) * Qtt :: SECTOR; i++)
-			this->byte_s[i % Qtt :: SECTOR] = cluster[i];
-	}
-	this->used = true;
-	this->full = true;	// corrigir; devo fazer isso mesmo?///
-}
-
-
-// class Cluster
-
-ui Cluster :: insert(const char cluster[Qtt :: CLUSTER]){
-	cout << "Inserrindo no cluster\n";
-	this->used = true;
-	for(ui i = 0; i < this->MAX; i++){
-		for(ui j = 0; j < Qtt :: SECTOR; j++)
-			this->sector[i].insert(cluster, i);
-	}
-	return true;
-}
-
 // class Track
+
 // private
 
 // public
 
-bool Track :: s_full(){
-	if(this->set_used.size() == this->CLUSTERS)
-		this->full = true;
-	else
-		this->full = false;
-	return this->full;
-}
-
-// Retorna o numero do novo cluster ocupado
-ui Track :: insert(const char cluster[Qtt :: CLUSTER]){
+ui Track :: insert(const char sec[512]){
 	if(this->full == true)	return false;
-
-	for(ui x = 0; x < this->CLUSTERS; x++){
-		if(this->cluster[x].g_used() == false){	// Encontrou cluster livre
-			cout << "Inseriu no cluster " << x << endl;
-			this->cluster[x].insert(cluster);
-			this->set_used.insert(x);
-			this->s_full();
-			return x;
-		}	
-	}
-	throw "Mal-definido as trilhas cheias :/\n";
 }
 
 
@@ -104,25 +42,26 @@ bool Cylinder :: s_full(){
 		this->full = true;
 	else
 		this->full = false;
-	cout << "Cilndros usados :: " << set_used.size() << endl;
 	return this->full;
 }
 
 // public
-ui Cylinder :: insert(const char cluster[Qtt :: CLUSTER]){	// TODO: implementar isso de verdade.
+ui Cylinder :: insert(const char sec[512]){	// TODO: implementar isso de verdade.
 	if(this->full == true)	return false;
 	for(ui x = 0; x <= this->MAX; x++){
+
 		if( this->track[x].g_full() == false ){
 			cout << "Inseriu na trilha " << x << endl;
-			this->track[x].insert(cluster);
+			this->track[x].insert(sec);
 			if( this->track[x].g_full() == true ){	// Se lotar a trilha, fazer os procedimentos
 				this->set_used.insert(x);
-			}					
+				this->s_full();
+			}		
 			x = this->MAX;
 		}
+//		getchar();
 	}
 	this->used++;		// +1 um cluster utilizado
-	this->s_full();
 	return true;
 }
 
@@ -132,48 +71,41 @@ ui Cylinder :: insert(const char cluster[Qtt :: CLUSTER]){	// TODO: implementar 
 
 // Obs: 'size' eh em termos de BYTES
 // Retorna o ultimo cilindro no qual o arquivo foi inserido
-
-ui HardDrive :: set_full(){
-	if(this->set_used.size() == CYLINDERS)
-		this->full = true;	
-	else
-		this->full = false;
-	return this->full;
-}
-
-
 ui HardDrive :: insert_file2( const char file[100], ui& size, ui cylinder = 0, ui offset = 0){
 	cout << "clusters usados antes : " << this->used << endl;
 	if((cylinder % CYLINDERS) == CYLINDERS - 1)	return CYLINDERS;	// Tentou insrecao em todos os cilindros e mesmo assim nao deu certo
 
-	if(this->cylinder[cylinder%CYLINDERS].g_full() == true){
-		cout << "Lotou cilindro " << cylinder << endl;
+	if(this->cylinder[cylinder%CYLINDERS].g_full() == true)
 		return this->insert_file2(file,size, cylinder+1, offset);
-	}
 	else{		
 		cout << "cylinder == " << cylinder << endl;
 		// TODO : implementar a insercao no cilindro enquant houver clusters disponiveis
-		char sec[Qtt :: CLUSTER];
-		memset(sec, Qtt :: CLUSTER, '0');
+		char sec[512];
+		memset(sec, 512, '0');
 		cout << file << endl;
 		FILE *fp = fopen(file, "r");
+		ui count = 0;				// Cada vez que atinge 4, um clusterr forpreenchido
 		ui x = 0;
+		if(size == 0)	count = 0;	//  Para nao conflitar com a linha 78
 
 		bool full_cylinder = this->cylinder[cylinder%CYLINDERS].g_full();	// Enquanto cilindro tem espaco, insere nele.
 
 		while((size  != 0) and (full_cylinder == false)){
-			cout << "Inseriu no cilindro " << cylinder << endl;			
+			cout << "Inseriu no cilindro " << cylinder << endl;
+			count++;
 			x++;
 			cout << x << endl;
-			if((ui)ceil((float)((int)size)/Qtt :: CLUSTER)  > 1 ){	//    Mais de um cluster para ler.
-				fread(sec, Qtt :: CLUSTER, 1, fp);
-				fseek(fp, Qtt :: CLUSTER, offset);
-				offset += Qtt :: CLUSTER;
+//			cout << "(ui)ceil( ((float) int(size))/Qtt :: SECTOR) == " << (ui)ceil( ((float) int(size))/Qtt :: SECTOR) << endl;
+			if((ui)ceil((float)((int)size)/Qtt :: SECTOR)  > 1 ){	//    Mais de um cluster para ler.
+//				cout << "normal\n";
+				fread(sec, Qtt :: SECTOR, 1, fp);
+				fseek(fp, Qtt :: SECTOR, offset);
+				offset += Qtt :: SECTOR;
 				
-				for(int p = 0; p < Qtt :: CLUSTER; p++)
+				for(int p = 0; p < Qtt :: SECTOR; p++)
 					printf("%c", sec[p]);
 				printf("\nProxima leitura:\n");
-				size -= Qtt :: CLUSTER;
+				size -= Qtt :: SECTOR;
 			}
 			else{
 				cout << "\nFinal\n";
@@ -182,24 +114,25 @@ ui HardDrive :: insert_file2( const char file[100], ui& size, ui cylinder = 0, u
 					cout << sec[k];
 				cout <<  endl;
 				offset += size ;
-				size = 0;
-				cout << "Final mesmo :/\n";		
+				size = 0;				
 			}
-			cout << "Inserindo no cilindro ...\n";
+//			throw 99;
 			this->cylinder[cylinder].insert(sec);
-
-			cout << "Cluster cheio" << endl;
-			this->used ++;	// Incrementa apenas quando LOTA um CLUSTER
-			full_cylinder = this->cylinder[cylinder%CYLINDERS].g_full();
-
+			count %= 4;
+			if(count == 0){
+				cout << "Cluster cheio" << endl;
+				this->used ++;	// Incrementa apenas quando LOTA um CLUSTER
+				full_cylinder = this->cylinder[cylinder%CYLINDERS].g_full();
+			}
 			
 			if(this->cylinder[cylinder].g_full() == true){	// Se lotou um cilindro faz as rotinas necessarias
 				this->set_used.insert(cylinder);
 				this->set_full();
 			}
-
-			memset(sec, Qtt :: CLUSTER, '0');
+			memset(sec, 512, '0');
 			
+
+//			memset(sec, 512, '0');
 		}
 		if(size != 0){	// Arquivo nao coube no cilindro; continuar a  insrecao no proximo
 			cout << ">>>>>>>>>>>>>>>>>Passando para o proximo cilindro :: " << cylinder+1 << endl;
@@ -210,8 +143,19 @@ ui HardDrive :: insert_file2( const char file[100], ui& size, ui cylinder = 0, u
 		// Motivo :: completar o cluster.
 		// Pq abaixo do 'if' acima? Porque na maioria das vezes eh espe-
 		// rado o 'if' ter sua condicao verdadeira
+		cout << "count antes do ajuste : " << count << endl;
+		for(; count != 0; count%=4){	// Gravou menos de 4 setores contiguos; ou seja,
+			memset(sec, 512, '0');				// nao gravou um cluster inteiro
+			this->cylinder[cylinder].insert(sec);			
+			if(count == 3){
+				cout << "Opa! Cluster ocupado\n";
+				this->used++;
+			}
+			count++;
+		}
 
 		//...
+		cout << "count depois do ajuste : " << count << endl;
 		cout << "clusters usados depois : " << this->used << endl;
 		fclose(fp);
 	}
@@ -219,6 +163,14 @@ ui HardDrive :: insert_file2( const char file[100], ui& size, ui cylinder = 0, u
 }
 
 // public
+
+ui HardDrive :: set_full(){
+	if(this->set_used.size() == CYLINDERS)
+		this->full = true;	
+	else
+		this->full = false;
+	return this->full;
+}
 
 bool HardDrive :: insert_file(){
 
