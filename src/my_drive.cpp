@@ -1,7 +1,11 @@
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <typeinfo>
 #include <vector>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "view.hpp"
 #include "estruturas.hpp"
 
@@ -27,6 +31,27 @@ int main(void){
 	cout << "Clusters por trilha :: " << Track :: g_CLUSTERS() << endl;
 	cout << "Clusters por cilindro :: " << Cylinder :: g_CLUSTERS() << endl;
 	cout << "Clusters por HD :: " << HardDrive :: g_CLUSTERS() << endl;
+	
+	ifstream file("teste.txt", ifstream :: binary);
+	if(file){
+		FILE *fp = fopen("teste.txt", "r");
+		FILE *fp2 = fopen("teste.txt", "r");
+		char i[512];
+		memset(i, 512, '0');
+		fread(i, 512, 1, fp);
+		cout << i << endl;
+		fseek(fp, 300, 0);
+
+		memset(i, 512, '0');
+		fread(i, 512, 1, fp);
+		if(strlen(i) == 0)
+			cout << "Final do arquivo\n";
+		cout << i << endl;
+		fclose(fp);
+		fclose(fp2);
+
+	}
+
 	return 10;
 
 
