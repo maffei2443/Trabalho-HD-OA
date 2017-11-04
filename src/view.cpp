@@ -29,4 +29,11 @@ namespace view{
 	void mostra_FAT(){
 		cout << "Implementar impressao da tabela FAT\n";
 	}
+	void lotado_HD(){
+		cout << "HD lotado\n";
+	}
+	void inseriu_cilindro(uint x){
+		cout << "Inserido no cilindro " << x << endl;		
+	}
+
 }

@@ -27,6 +27,7 @@ int main(void){
 	cout << x << endl;
 
 	myHD.insert_file();
+	myHD.insert_file();
 
 	cout << "Clusters por trilha :: " << Track :: g_CLUSTERS() << endl;
 	cout << "Clusters por cilindro :: " << Cylinder :: g_CLUSTERS() << endl;

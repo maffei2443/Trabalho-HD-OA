@@ -6,16 +6,31 @@
 #include <set>
 
 using namespace std;
-#define ui unsigned int
+#ifndef ui
+	#define ui unsigned int
+#endif
 class FatEnt;
 class FatList;
 class FatTable;
+class Qtt;
 class Sector;
 class Cluster;
 class Track;
 class Cylinder;
 class HardDrive;
 class Time;
+
+// Specify size of Objects those store data in erms os BYTES.
+class Qtt{
+private:
+	Qtt(){}
+public:	
+	constexpr static ui SECTOR = 512;
+	constexpr static ui CLUSTER = 4 * SECTOR;
+	constexpr static ui TRACK = 15 * CLUSTER;
+	constexpr static ui CYLINDER = 5 * TRACK;
+};
+
 
 class Fatlist{
 private:
@@ -87,7 +102,7 @@ class Track{
 private:
 	bool full;
 	ui used;
-	set<int> set_used;
+	set<ui> set_used;
 	const static ui MAX_SECTOR = 60;	// 60 setores por trilha
 	const static ui MAX_CLUSTERS = 4;	// 15 clusters por trilha
 	const static ui CLUSTERS = MAX_SECTOR / MAX_CLUSTERS;
@@ -109,7 +124,7 @@ private:
 	ui used;
 	const static ui MAX = 5;	// 5 trilhas por cilindro
 	const static ui MAX_CLUSTERS = MAX * Track :: g_CLUSTERS();	// 5 trilhas por cilindro
-	set<int> set_used;
+	set<ui> set_used;
 public:
 	vector<Track> track;
 
@@ -119,6 +134,7 @@ public:
 	inline vector<Track> g_tracks()const{return track;}
 	inline bool g_full(){return full;}
 	
+	bool insert(const char sec[512]);	// Setor recebi que deve ser inserido na primeira trilha
 	constexpr static ui g_CLUSTERS(){return MAX_CLUSTERS;}
 };
 
@@ -132,18 +148,20 @@ private:
 
  	const static ui MAX_CLUSTERS = CYLINDERS * Cylinder :: g_CLUSTERS();
 
- 	set<int> set_used;
+ 	set<ui> set_used;
 
  	vector <Cylinder> cylinder;
 
-	ui insert_file2(const ui& cylinder, const string&, ui);
+	ui insert_file2( const char file[100], ui& size, const ui, const ui);	// Primeiro 'ui' eh o cilindro de insercao
+																				// Segundo 'ui'	 eh o offset ja percorrido do arquivo.
 public:
 	
-	static const int g_n_cylinders(){return CYLINDERS;}
+	static const ui g_n_cylinders(){return CYLINDERS;}
 
 	HardDrive(): full(false), used(0){cylinder.resize(CYLINDERS);}
 	~HardDrive(){cylinder.resize(0);}
 	inline const Cylinder g_cylinder(const ui& i){return cylinder[i%CYLINDERS];}
+	bool set_full();
 //	inline vector<Cylinder> g_cylinders(){return cylinder;}
 
 	bool insert_file();
@@ -174,6 +192,7 @@ public:
 	static const int LATENCY_MEAN = 6;
 	static const int TRANSFER_TRACK = 12;
 };
+
 
 
 #endif

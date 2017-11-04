@@ -1,4 +1,4 @@
-CXXFLAGS = -std=c++14 -fpermissive
+CXXFLAGS = -std=c++14 -fpermissive 
 all:		estruturas.o	view.o	my_drive.o
 	g++ $(CXXFLAGS) estruturas.o view.o my_drive.o -o my_drive
 
