@@ -10,16 +10,6 @@
 using namespace std;
 
 
-// class ClusterFake
-// n : em qual setor termina o cluster
-ClusterFake :: ClusterFake(const char cluster[Qtt :: CLUSTER], const ui& n, const ui& size){
-	for(ui i = 0; i < Qtt :: CLUSTER; i++)
-		this->cluster[i] = cluster[i];
-	this->last = n;
-	this->size = size;
-}
-
-
 // class Fatlist
 
 Fatlist :: Fatlist(string const& file, ui const& first){
@@ -39,44 +29,46 @@ ui FatTable :: insert(const string& name, const ui& size){
 
 // public
 
-bool Sector :: insert_last(const char cluster[Qtt :: CLUSTER], const ui& size){
-	if(size == 3);	// TODO: impllementar insercao diferenciada; talvez uma struct
-					// que contenha cluster e o indice da posicao final; de esse
-					// indice > 1024, nao eh o ultimo setor do cluster.
-	else{
-		for(ui i = size * Qtt :: SECTOR; i < (size+1) * Qtt :: SECTOR; i++)
+bool Sector :: insert_last(const char cluster[Qtt :: CLUSTER], const ui& pos, int lpv = -1){
+		// 'cluster' eh a string ue o forma, 'size' eh o tamanho util, 'pos' eh o numero do setor, 'lpv' eh a ultima posicao util do setor
+	if(lpv != -1)
+		for(ui i = pos * Qtt :: SECTOR; i < (pos * (Qtt :: SECTOR) + lpv); i++)
 			this->byte_s[i % Qtt :: SECTOR] = cluster[i];
-	}
+
+	this->next = -1;
 	this->used = true;
-	this->full = true;	// corrigir; devo fazer isso mesmo?///
+	this->last_valid = lpv;		// Se lpv < 0, todo o setor serve apenas comoo fragmentacao interna
 }
 
-bool Sector :: insert(const char cluster[Qtt :: CLUSTER], const ui& next){
-	if(next == 3);	// TODO: impllementar insercao diferenciada; talvez uma struct
-					// que contenha cluster e o indice da posicao final; de esse
-					// indice > 1024, nao eh o ultimo setor do cluster.
-	else{
-		for(ui i = next * Qtt :: SECTOR; i < (next+1) * Qtt :: SECTOR; i++)
-			this->byte_s[i % Qtt :: SECTOR] = cluster[i];
-	}
+bool Sector :: insert(const char cluster[Qtt :: CLUSTER], const ui& next, const ui& pos){
+
+	for(ui i = pos * Qtt :: SECTOR; i < (pos+1) * Qtt :: SECTOR; i++)
+		this->byte_s[i % Qtt :: SECTOR] = cluster[i];
+
+	this->next = next;
 	this->used = true;
-	this->full = true;	// corrigir; devo fazer isso mesmo?///
+	this->last_valid = Qtt :: SECTOR;	// Ou seja, todos os bytes do setor sao utilizados
 }
-
-
 
 // class Cluster
-
 // URGENTE :: VERIFICAR AS DUSA FUNCOES ABAIXO!!
 ui Cluster :: insert_last(const char cluster[Qtt :: CLUSTER], const ui& size){
+	ui sizep = size + 1;	// Corrige o caso ceil(1024/512) == 2. Mas 2-1 == 1, que eh uma iteracao a menos do que o necessario na l70
+	int pos = (int) ceil((float)((int)sizep) / (int)Qtt::SECTOR);		// Pega o nº do setor no qual estah localizado o ultimo bytee valido
+
 	cout << "Inserrindo no cluster\n";
 	this->used = true;
 	this->next = -1;			// Como eh o ultimo setor, logo eh o ultimo cluster.
-
-	for(ui i = 0; i < this->MAX; i++){
-		for(ui j = 0; j < Qtt :: SECTOR; j++)
-			this->sector[i].insert_last(cluster, i);
-	}
+	ui i;
+	for(i = 0; i < pos-1; i++)		//  Setores que serao integralmente  aproveitados
+		this->sector[i].insert_last(cluster,  i, Qtt::SECTOR);
+	// Setor que pode ou nao ser totalmente aproveitadoo
+	this->sector[i].insert_last(cluster,  i, size - (pos-1) *Qtt :: SECTOR);
+	
+	//  Setores que serao integralmente  descartados
+	for(; i < (Qtt :: CLUSTER / Qtt :: SECTOR) ; i++)		
+		this->sector[i].insert_last(cluster, size, i);
+	
 	return true;
 }
 
@@ -85,7 +77,7 @@ ui Cluster :: insert(const char cluster[Qtt :: CLUSTER], const ui& next){
 	this->used = true;
 	for(ui i = 0; i < this->MAX; i++){
 		for(ui j = 0; j < Qtt :: SECTOR; j++)
-			this->sector[i].insert(cluster, i);
+			this->sector[i].insert(cluster, next, i);
 	}
 	return true;
 }

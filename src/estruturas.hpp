@@ -33,14 +33,6 @@ public:
 };
 
 // Classe que vai ajudar a gravar o ultimo setor no disco.
-class ClusterFake{
-public:
-	char cluster[Qtt :: CLUSTER];
-	ui last;	// Indica qual eh o ultimo  setor do cluster (de 0 a 3)
-	ui size;	// Indica o offset, A PARTIR DO INICIO, de dados uteis
-	ClusterFake(const char*, const ui&, const ui&);
-};
-
 
 class Fatlist{
 private:
@@ -82,16 +74,17 @@ public:
 // Unidades basicas de armazenamento (num HD orientado a setores)
 class Sector {
 private:
-	ui used;
-	bool full;
+	int last_valid;
+	bool eof;
+	ui used;						// Obs: sera usado como bool, mas poedria indicar o primeiro espaco vago no setor.
 	int next;
 	const static ui MAX = 512;		/// 512 bytes por setor
 	unsigned char byte_s[MAX];	//[512];
 public:
-	Sector(): full(false), used(0){}
+	Sector(): eof(false),next(-1), used(false){}
 	const inline unsigned char * g_byte_s(){return byte_s;}
-	bool insert_last(const char*, const ui&);
-	bool insert(const char*, const ui&);
+	bool insert_last(const char*,  const ui&, int);	//  cluster,  posicao do setor, last valid position
+	bool insert(const char*, const ui&, const ui&);	//  cluster, next cluster, nº do setor
 };
 
 // 1 cluster contem 4 setores.
