@@ -39,13 +39,24 @@ ui FatTable :: insert(const string& name, const ui& size){
 
 // public
 
-// 'pos' identifica se eh o setor de numero 0, 1, 2 ou 3.
-bool Sector :: insert(const char cluster[Qtt :: CLUSTER], const ui& pos){
-	if(pos == 3);	// TODO: impllementar insercao diferenciada; talvez uma struct
+bool Sector :: insert_last(const char cluster[Qtt :: CLUSTER], const ui& size){
+	if(size == 3);	// TODO: impllementar insercao diferenciada; talvez uma struct
 					// que contenha cluster e o indice da posicao final; de esse
 					// indice > 1024, nao eh o ultimo setor do cluster.
 	else{
-		for(ui i = pos * Qtt :: SECTOR; i < (pos+1) * Qtt :: SECTOR; i++)
+		for(ui i = size * Qtt :: SECTOR; i < (size+1) * Qtt :: SECTOR; i++)
+			this->byte_s[i % Qtt :: SECTOR] = cluster[i];
+	}
+	this->used = true;
+	this->full = true;	// corrigir; devo fazer isso mesmo?///
+}
+
+bool Sector :: insert(const char cluster[Qtt :: CLUSTER], const ui& next){
+	if(next == 3);	// TODO: impllementar insercao diferenciada; talvez uma struct
+					// que contenha cluster e o indice da posicao final; de esse
+					// indice > 1024, nao eh o ultimo setor do cluster.
+	else{
+		for(ui i = next * Qtt :: SECTOR; i < (next+1) * Qtt :: SECTOR; i++)
 			this->byte_s[i % Qtt :: SECTOR] = cluster[i];
 	}
 	this->used = true;
@@ -53,9 +64,23 @@ bool Sector :: insert(const char cluster[Qtt :: CLUSTER], const ui& pos){
 }
 
 
+
 // class Cluster
 
-ui Cluster :: insert(const char cluster[Qtt :: CLUSTER]){
+// URGENTE :: VERIFICAR AS DUSA FUNCOES ABAIXO!!
+ui Cluster :: insert_last(const char cluster[Qtt :: CLUSTER], const ui& size){
+	cout << "Inserrindo no cluster\n";
+	this->used = true;
+	this->next = -1;			// Como eh o ultimo setor, logo eh o ultimo cluster.
+
+	for(ui i = 0; i < this->MAX; i++){
+		for(ui j = 0; j < Qtt :: SECTOR; j++)
+			this->sector[i].insert_last(cluster, i);
+	}
+	return true;
+}
+
+ui Cluster :: insert(const char cluster[Qtt :: CLUSTER], const ui& next){
 	cout << "Inserrindo no cluster\n";
 	this->used = true;
 	for(ui i = 0; i < this->MAX; i++){
@@ -64,6 +89,7 @@ ui Cluster :: insert(const char cluster[Qtt :: CLUSTER]){
 	}
 	return true;
 }
+
 
 // class Track
 // private
@@ -79,13 +105,28 @@ bool Track :: s_full(){
 }
 
 // Retorna o numero do novo cluster ocupado
-ui Track :: insert(const char cluster[Qtt :: CLUSTER]){
+ui Track :: insert_last(const char cluster[Qtt :: CLUSTER], const ui& size){
 	if(this->full == true)	return false;
 
 	for(ui x = 0; x < this->CLUSTERS; x++){
 		if(this->cluster[x].g_used() == false){	// Encontrou cluster livre
 			cout << "Inseriu no cluster " << x << endl;
-			this->cluster[x].insert(cluster);
+			this->cluster[x].insert_last(cluster, size);
+			this->set_used.insert(x);
+			this->s_full();
+			return x;
+		}	
+	}
+	throw "Mal-definido as trilhas cheias :/\n";
+}
+
+ui Track :: insert(const char cluster[Qtt :: CLUSTER], const ui& next){
+	if(this->full == true)	return false;
+
+	for(ui x = 0; x < this->CLUSTERS; x++){
+		if(this->cluster[x].g_used() == false){	// Encontrou cluster livre
+			cout << "Inseriu no cluster " << x << endl;
+			this->cluster[x].insert(cluster, next);
 			this->set_used.insert(x);
 			this->s_full();
 			return x;
@@ -109,12 +150,29 @@ bool Cylinder :: s_full(){
 }
 
 // public
-ui Cylinder :: insert(const char cluster[Qtt :: CLUSTER]){	// TODO: implementar isso de verdade.
+ui Cylinder :: insert_last(const char cluster[Qtt :: CLUSTER], const ui& size){	// TODO: implementar isso de verdade.
 	if(this->full == true)	return false;
 	for(ui x = 0; x <= this->MAX; x++){
 		if( this->track[x].g_full() == false ){
 			cout << "Inseriu na trilha " << x << endl;
-			this->track[x].insert(cluster);
+			this->track[x].insert_last(cluster, size);
+			if( this->track[x].g_full() == true ){	// Se lotar a trilha, fazer os procedimentos
+				this->set_used.insert(x);
+			}					
+			x = this->MAX;
+		}
+	}
+	this->used++;		// +1 um cluster utilizado
+	this->s_full();
+	return true;
+}
+
+ui Cylinder :: insert(const char cluster[Qtt :: CLUSTER], const ui& next){	// TODO: implementar isso de verdade.
+	if(this->full == true)	return false;
+	for(ui x = 0; x <= this->MAX; x++){
+		if( this->track[x].g_full() == false ){
+			cout << "Inseriu na trilha " << x << endl;
+			this->track[x].insert(cluster, next);
 			if( this->track[x].g_full() == true ){	// Se lotar a trilha, fazer os procedimentos
 				this->set_used.insert(x);
 			}					
@@ -174,19 +232,23 @@ ui HardDrive :: insert_file2( const char file[100], ui& size, ui cylinder = 0, u
 					printf("%c", sec[p]);
 				printf("\nProxima leitura:\n");
 				size -= Qtt :: CLUSTER;
+				ui next = 1;
+				this->cylinder[cylinder].insert(sec, next);	// TODO: 'next' deve ser informado pela tabela FAT
 			}
 			else{
 				cout << "\nFinal\n";
 				fread(sec, size, 1, fp);
 				for(int k = 0; k < size; k++)
 					cout << sec[k];
+				cout << endl << size << endl;
 				cout <<  endl;
 				offset += size ;
 				size = 0;
-				cout << "Final mesmo :/\n";		
+				cout << "Final mesmo :/\n";
+				this->cylinder[cylinder].insert_last(sec, size);		
 			}
 			cout << "Inserindo no cilindro ...\n";
-			this->cylinder[cylinder].insert(sec);
+//			this->cylinder[cylinder].insert(sec);
 
 			cout << "Cluster cheio" << endl;
 			this->used ++;	// Incrementa apenas quando LOTA um CLUSTER
@@ -244,7 +306,7 @@ bool HardDrive :: insert_file(){
 
 
 	ui ret = insert_file2(file, length,0, 0);
-	cout << "RRetornou da funcao insret_file2\n";
+	cout << "Retornou da funcao insert_file2\n";
 	if( ret == CYLINDERS ){
 		view :: lotado_HD();
 		return false;

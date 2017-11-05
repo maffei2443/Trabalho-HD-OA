@@ -7,7 +7,7 @@
 
 using namespace std;
 #ifndef ui
-	#define ui unsigned int
+	#define ui 	unsigned int
 #endif
 class FatEnt;
 class FatList;
@@ -90,7 +90,8 @@ private:
 public:
 	Sector(): full(false), used(0){}
 	const inline unsigned char * g_byte_s(){return byte_s;}
-	bool insert(const char cluster[Qtt :: CLUSTER], const ui&);
+	bool insert_last(const char*, const ui&);
+	bool insert(const char*, const ui&);
 };
 
 // 1 cluster contem 4 setores.
@@ -109,7 +110,8 @@ public:
 	inline vector<Sector> g_sectors()const{return sector;}
 	inline bool g_used(){return used;}
 
-	ui insert(const char cluster[Qtt :: CLUSTER]);
+	ui insert_last(const char*, const ui&);
+	ui insert(const char*, const ui&);
 };
 
 class Track{
@@ -130,7 +132,8 @@ public:
 	inline bool g_full(){return full;}
 	bool s_full();
 //	void s_cluster(const ui& i, const Sector& neo){cluster[i%MAX_SECTOR] = neo;}
-	ui insert(const char cluster[Qtt :: CLUSTER]);
+	ui insert_last(const char*, const ui&);
+	ui insert(const char*, const ui&);
 	constexpr static ui g_CLUSTERS(){return CLUSTERS;}
 };
 
@@ -151,7 +154,8 @@ public:
 	inline vector<Track> g_tracks()const{return track;}
 	inline bool g_full(){return full;}
 	
-	ui insert(const char sec[512]);	// Setor recebi que deve ser inserido na primeira trilha
+	ui insert_last(const char*, const ui&);	// Setor recebi que deve ser inserido na primeira trilha
+	ui insert(const char*, const ui&);	// Setor recebi que deve ser inserido na primeira trilha
 	constexpr static ui g_CLUSTERS(){return MAX_CLUSTERS;}
 };
 
