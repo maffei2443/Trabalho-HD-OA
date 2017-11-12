@@ -36,4 +36,9 @@ namespace view{
 		cout << "Inserido no cilindro " << x << endl;		
 	}
 
+	void arquivo_nao_encontrado(){
+		cout << "Desculpe, o arquivo buscado nao existe no corrente";
+		cout << " local de busca.\n";
+	}
+
 }

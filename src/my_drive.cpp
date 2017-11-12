@@ -24,17 +24,21 @@ using namespace std;
 int main(void){
 
 	HardDrive myHD;	
+
+
+
 	auto x = myHD.g_n_cylinders();
 	cout << x << endl;
-	for(int i =0; i < 40; i++)
-		myHD.insert_file();
+//	for(int jj = 0; jj < 10; jj++)
+	myHD.insert_file();
 
-	cout << "Clusters por trilha :: " << Track :: g_CLUSTERS() << endl;
-	cout << "Clusters por cilindro :: " << Cylinder :: g_CLUSTERS() << endl;
-	cout << "Clusters por HD :: " << HardDrive :: g_CLUSTERS() << endl;
+	myHD.show_file(string("in"));
+
+	
+	string in;
 	
 	return 15;
-	
+/*	
 	ifstream file("teste.txt", ifstream :: binary);
 	if(file){
 		FILE *fp = fopen("teste.txt", "r");
@@ -54,7 +58,7 @@ int main(void){
 		fclose(fp2);
 
 	}
-
+//*/
 	return 10;
 
 
