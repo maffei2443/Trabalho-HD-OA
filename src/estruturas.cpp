@@ -11,16 +11,19 @@
 using namespace std;
 
 inline ui which_cylinder(ui cluster){
-	return cluster / ((Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER));
+	printf("ui which_cylinder(%d) == %d\n", cluster, (2 * cluster) / ((Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER)));
+	return (2 * cluster) / ((Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER));
 }
 
 ui which_track(ui cluster){
 	ui aux = 0;
-	ui div = (Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER);
-	if(cluster >= div)
+	ui div = 75;
+	if(cluster >= div){
 		aux = which_cylinder(cluster);
+		printf("[which_track :: cylinder] aux == %d\n", aux);
+	}
 	cluster -= aux * div;
-	return cluster / (Qtt :: TRACK / Qtt :: CLUSTER);
+	return cluster / (Qtt :: TRACK / Qtt :: CLUSTER);	//  15
 }
 
 ui which_cluster(ui cluster){
@@ -169,28 +172,37 @@ ui FatTable :: alloc_nxt(ui cluster, ui track, ui cylinder){
 	bool first = true;
 	bool alloc = false;	
 
-	int i, j, k;
+	ui i, j, k;
 	k = cylinder;
+	i = cluster;
 	int debug = 0;		// throw se dar mais de 749 iteracoes :/
-	for(i = cluster; alloc == false;){		
-
-		for(j = track + 1; alloc == false and j != 0; j++){
+	for(; alloc == false;){		
+		printf("i == %u\n", i);
+		bool it = true;
+		for(j = track + 1; alloc == false; j++){
 			j %= 5;
-			if(j == 0){				// Passou pela ultima trilha; passar ao proximo cluster 
+			cout << "Checando : " << i + 15 * j + 75 * k << endl;
+			printf("%u %u %u\n", i, j, k );
+//			getchar();
+			if(j == 0 and it == false){				// Passou pela ultima trilha; passar ao proximo cluster 
 									// da primeira trilha do mesmo cilindro.
 					break;
 			}
 			else if(this->clusters[i + 15 * j + 75 * k] == false){
 				alloc = true;
 				onde = (i + 15 * j + 75 * k);
+				this->clusters[i + 15 * j + 75 * k] = true;
 			}
+			it = false;
 		}
 		track = -1;	// Para sempre começar pela trilha mais em cima, com exceçao claro da primeira na qual
 					// tenta-se inserir na TRILHA SEGUINTE aa passada por parametro.
 					// Passar para o proximo cluster, pois nao inseriu em nenhuma das trilhas abaixo.
 		i++;		// Iterar AQUI!! Senao, zoa a questao da comparacao com 'mod'.
 		i %= 15;	
+		printf("Nao incrementa pq?? %d\n", i);
 		if(i == mod){		// FINALMENTE deu a primeira volta.
+			printf("primeira volta\n");
 			mod = -1;		// Para nao mais entrar aqui.
 			first = false;	// Apenas para nao dar voltas a toa :)
 			i = 0;			// Zera o cluster
@@ -203,6 +215,7 @@ ui FatTable :: alloc_nxt(ui cluster, ui track, ui cylinder){
 		debug++;
 		if(debug > 750)	{cout << "Erro em FatTable :: alloc_nxt" << debug << "\n";}
 	}
+	cout << "Alocou " << onde << endl;
 	return onde;
 }
 
@@ -260,44 +273,53 @@ vector<ui> FatTable :: alloc_space(const string& file, ui size){
 	ui where_cylinder, where_treck, where_cluster;
 	where_cylinder = which_cylinder(first);
 	where_treck = which_track(first);
-	where_cluster = first - where_cylinder * 150 - where_treck * 15;
+	where_cluster = first - where_cylinder * 75 - where_treck * 15;
 	// Parametros sao as posicoes do cluster predecessor.
 	ui next = alloc_nxt(where_cluster, where_treck, where_cylinder);	// Proximo cilindro alocado para insercao.
 	// assert(qtt >= 2)
 	cout << "First :: " << first << endl;
 	while( qtt > 0 ){	// Inserir o resto do arquivo.
 		lista.push_back( first );
-//		printf("first == %d\n", first);
+		printf("push_back (loop) == %d\n", first);
 //		printf("next == %d\n", next);
 		this->clusters[first] = true;
 		this->fatent[first] = FatEnt(true, false, next);
 		qtt--;
 		if(qtt > 0)
 			first = next;
-
+		else{	// Ultima passada do loop; caso CHATO, mas foi assim que resolvi :/
+			where_cylinder = which_cylinder(next);
+			where_treck = which_track(next);
+			where_cluster = next - where_cylinder * 75 - where_treck * 15;
+			first = alloc_nxt(where_cluster, where_treck, where_cylinder);
+			cout << "Geladeira :: " << first << endl;
+			this->clusters[next] = true;
+			this->fatent[next] = FatEnt(true, false, first);
+//			next = alloc_nxt(where_cluster, where_treck, where_cylinder);
+			break;
+		}
 		where_cylinder = which_cylinder(first);
 		where_treck = which_track(first);
-		where_cluster = first - where_cylinder * 150 - where_treck * 15;
-			
+		where_cluster = first - where_cylinder * 75 - where_treck * 15;
+		printf("Parametro mandados :: %d %d %d\n",where_cluster, where_cylinder, where_cylinder );
 		next = alloc_nxt(where_cluster, where_treck, where_cylinder);
+		printf("Alocado : %d\n", next);
 	}
 
 	// Inserir o ultimo setor; calcular também seu tamanho exato
 
 	this->clusters[first] = true;
-	this->fatent[first] = FatEnt(true, false, next);	// used = true, eof = false, next = -1
-	printf("pushed_back == %d\n", first);
-	lista.push_back( next );
-	this->fatent[next] = FatEnt(true, true, -1);	// used = true, eof = false, next = -1
-	printf("pushed_back == %d\n", next);
-	this->unused.erase( next );
-	this->used.insert( next );
+	this->fatent[first] = FatEnt(true, true, -1);	// used = true, eof = false, next = -1
+	lista.push_back( first );
+	this->unused.erase( first );
+	this->used.insert( first );
+	printf("pushed_back(out_loop1) == %d\n", first);
 	// Todo os cluster na tbela fat adequadamente enumerados
 	for(auto it = lista.cbegin(); it != lista.cend(); it++)
 		cout << "Cluster ocupado : " << (*it) << endl;
+	cout << "Clusters alocados :: " << lista.size() << endl;
+	getchar();
 	return lista;
-	getchar();
-	getchar();
 }
 
 bool FatTable :: free_space(const string& get_out){
@@ -412,15 +434,19 @@ void FatTable :: show(){
 		for(int i = 0; i < (20 - aux); i++ )
 			name += " ";
 		printf("%s\t%lu Bytes\t\t", name.c_str(),  lista.size() * Qtt :: CLUSTER);
+		int mod = 0;
 		for(auto it2 = lista.cbegin(); it2 != lista.cend(); ){
+			mod ++;
+			mod %= 5;
 			printf("%d", (*it2));
 			it2++;
-			if(it2 == lista.cend())
-				printf("\n");
+			if(it2 == lista.cend() || mod == 0)
+				printf("\n                                                ");
 			else
 				printf(", ");
 		}
 	}
+	printf("\n");
 	if(count == 0)
 		view :: empty_FAT();
 }
@@ -607,15 +633,16 @@ bool HardDrive :: set_full(  ){
 }
 
 ui HardDrive :: insert_file(const string& file, ui size){
-
+	cout << "[HardDrive :: insert_file]INSERINDO ... \n";
 	vector<ui> to_put = this->fat.alloc_space(file, size);
+	cout << "Clusters retornados :: " << to_put.size() << endl;
 	if(to_put.size() == 0){
 		cout << "[HardDrive :: insert_file] Erro : HD jah contem arquivo de mesmo nome.\n";
 		cout << "ou\n";
 		cout << "[HardDrive :: insert_file] Erro : HD nao tem espaço disponivel suficiente.\n";
 		return 0;
 	}
-	for(ui i =0; i < to_put.size(); i++ );
+//	for(ui i =0; i < to_put.size(); i++ );
 //		cout << "Alocou cluster " << to_put[i] << endl;
 	
 	ui tracks = (this->CYLINDERS * Qtt :: TRACK/Qtt :: CLUSTER);
@@ -626,9 +653,10 @@ ui HardDrive :: insert_file(const string& file, ui size){
 	char cluster[Qtt :: CLUSTER];
 	FILE *fp = fopen(file.c_str(), "r");
 	ui offset = 0;					// Começa lendo a partir do inicio do arquivo.
-	ui div = (Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER);	//150
+//	ui div = (Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER);	//150
+	ui div = 75;
 	for(; j < ultimo ; j++){	
-
+//		printf("SEEKZAO %d\n", j);
 		fread(cluster, Qtt :: CLUSTER, 1, fp);
 		fseek(fp, Qtt :: CLUSTER, offset);
 		offset += Qtt :: CLUSTER;
@@ -637,11 +665,15 @@ ui HardDrive :: insert_file(const string& file, ui size){
 //			cout << cluster[i];
 
 //		cout << "cluster de insercao == " << to_put[j] << endl;
+//		printf("Insere....\n");
+//		printf("to_put[j] == %d\n", to_put[j]);
 		ui where = which_cylinder( to_put[j] );
+//		printf("Sucesso %d\n", where);
 
 //		cout << "cilindro de insercao :: " << where << endl;
 		if( !this->cylinder[where].insert( cluster, to_put[j] - where * div, to_put[j+1] ))	{cout << "Cylinder :: insert com problemas\n";	throw 100;}
 	}
+//	cout << "Final dos SEEKS" << endl;
 	// Inserir caso especial; ou seja, o ULTIMO cluster, que pode ser setores disperdiçados :/	
 //	cout << "ULTIMO cluster de insercao == " << to_put[j] << endl;
 	ui where = which_cylinder( to_put[j] );
@@ -649,7 +681,7 @@ ui HardDrive :: insert_file(const string& file, ui size){
 	
 	char last_cluster[size];
 	fread(last_cluster, size, 1, fp);
-		for(int i = 0; i < size; i++);
+//		for(int i = 0; i < size; i++);
 //			cout << last_cluster[i];
 //	cout << sizeof(last_cluster) << endl;
 
@@ -720,7 +752,7 @@ void HardDrive :: show_file(){
 //	cout << "Erro logico?\n";
 	for(auto it = lista.begin(); it != lista.end(); it++){
 		ui cluster = (*it);
-		char * i = this->g_cylinder(which_cylinder(cluster)).g_track(which_track(cluster)).g_cluster(cluster - which_cylinder(cluster) * 150 - which_track(cluster) * 15).g_cluster_content();
+		char * i = this->g_cylinder(which_cylinder(cluster)).g_track(which_track(cluster)).g_cluster(cluster - which_cylinder(cluster) * 75 - which_track(cluster) * 15).g_cluster_content();
 		cout << i;
 //		printf("\n");
 //		cout << "Numero de vezes que mostrei dessa vez :: " <<
