@@ -11,7 +11,7 @@
 using namespace std;
 
 inline ui which_cylinder(ui cluster){
-	printf("ui which_cylinder(%d) == %d\n", cluster, (2 * cluster) / ((Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER)));
+//	printf("ui which_cylinder(%d) == %d\n", cluster, (2 * cluster) / ((Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER)));
 	return (2 * cluster) / ((Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER));
 }
 
@@ -282,43 +282,44 @@ vector<ui> FatTable :: alloc_space(const string& file, ui size){
 		lista.push_back( first );
 		printf("push_back (loop) == %d\n", first);
 //		printf("next == %d\n", next);
+		printf("usdou :: %d\n", first);
 		this->clusters[first] = true;
 		this->fatent[first] = FatEnt(true, false, next);
-		qtt--;
-		if(qtt > 0)
-			first = next;
-		else{	// Ultima passada do loop; caso CHATO, mas foi assim que resolvi :/
-			where_cylinder = which_cylinder(next);
-			where_treck = which_track(next);
-			where_cluster = next - where_cylinder * 75 - where_treck * 15;
-			first = alloc_nxt(where_cluster, where_treck, where_cylinder);
-			cout << "Geladeira :: " << first << endl;
-			this->clusters[next] = true;
-			this->fatent[next] = FatEnt(true, false, first);
-//			next = alloc_nxt(where_cluster, where_treck, where_cylinder);
-			break;
-		}
+
+		first = next;
 		where_cylinder = which_cylinder(first);
 		where_treck = which_track(first);
 		where_cluster = first - where_cylinder * 75 - where_treck * 15;
-		printf("Parametro mandados :: %d %d %d\n",where_cluster, where_cylinder, where_cylinder );
+		printf("Parametros mandados :: %d %d %d\n",where_cluster, where_cylinder, where_cylinder );
 		next = alloc_nxt(where_cluster, where_treck, where_cylinder);
-		printf("Alocado : %d\n", next);
+		printf("Proximo : %d\n", next);
+
+		qtt--;
 	}
+	where_cylinder = which_cylinder(next);
+	where_treck = which_track(next);
+	where_cluster = next - where_cylinder * 75 - where_treck * 15;
+	cout << "Geladeira :: " << first << endl;
+	printf("first == %d\n", first);
+	printf("next == %d\n", next);
+	this->clusters[next] = true;
+	this->fatent[next] = FatEnt(true, false, first);
+//		next = alloc_nxt(where_cluster, where_treck, where_cylinder);
 
 	// Inserir o ultimo setor; calcular também seu tamanho exato
-
+//*
 	this->clusters[first] = true;
 	this->fatent[first] = FatEnt(true, true, -1);	// used = true, eof = false, next = -1
 	lista.push_back( first );
 	this->unused.erase( first );
 	this->used.insert( first );
 	printf("pushed_back(out_loop1) == %d\n", first);
+//*/
 	// Todo os cluster na tbela fat adequadamente enumerados
 	for(auto it = lista.cbegin(); it != lista.cend(); it++)
 		cout << "Cluster ocupado : " << (*it) << endl;
 	cout << "Clusters alocados :: " << lista.size() << endl;
-	getchar();
+//	getchar();
 	return lista;
 }
 
@@ -335,7 +336,7 @@ bool FatTable :: free_space(const string& get_out){
 			(*it) = Fatlist();		// Reseta objeto; pra poder usar novamente
 			cout << "Esperado :: NAO encontrar o arquivo\n";
 			auto lixo = this->g_clusters_list(get_out);
-			getchar();
+//			getchar();
 		}
 		else
 			index++;
@@ -500,7 +501,7 @@ ui Cluster :: insert(const char* cluster, const ui& next, string op = string("")
 		cout << "Qtt :: SECTOR == " << Qtt :: SECTOR << endl;
 		cout << "What?????!?! eof % Qtt :: SECTOR == " << (next / Qtt :: SECTOR) << endl;
 //*/
-		for(i = 0; i < eof / Qtt :: SECTOR; i++)			// Inserir em cada um dos setores
+		for(i = 0; i < (eof / Qtt :: SECTOR) ; i++)			// Inserir em cada um dos setores
 			this->sector[i].insert(cluster, next, i);
 //		cout << "Cluster :: insert <<<>>> Ultimo setorrr\n";
 		this->sector[i].insert(cluster, eof - i * Qtt :: SECTOR, i, op);
@@ -687,7 +688,7 @@ ui HardDrive :: insert_file(const string& file, ui size){
 
 	string arg("last");
 	if( !this->cylinder[where].insert( last_cluster, to_put[j] - where * div, size, arg ) )	{cout << "Cylinder :: insert com problemas\n";}
-	getchar();
+//	getchar();
 	printf("\n");
 }
 /*
@@ -750,15 +751,27 @@ void HardDrive :: show_file(){
 //	cout << "DEBUGGIN :: tamanho da lista == " << lista.size() << endl;
 	string arq("");
 //	cout << "Erro logico?\n";
+	FILE * fp = fopen((file + "_cpy") .c_str(), "w+");
+	int pp = 0;
 	for(auto it = lista.begin(); it != lista.end(); it++){
 		ui cluster = (*it);
-		char * i = this->g_cylinder(which_cylinder(cluster)).g_track(which_track(cluster)).g_cluster(cluster - which_cylinder(cluster) * 75 - which_track(cluster) * 15).g_cluster_content();
-		cout << i;
+//		printf("%s\n", );
+		Cluster cl = this->g_cylinder(which_cylinder(cluster)).g_track(which_track(cluster)).g_cluster(cluster - which_cylinder(cluster) * 75 - which_track(cluster) * 15);
+		char * i =  cl.g_cluster_content();
+		ui eof = cl.g_eof();
+		for(int l = 0; l < eof; l++){			
+			fprintf(fp, "%c", i[l]);
+//			printf("%c", i[l]);
+		}
+	
+//		getchar();
+
 //		printf("\n");
 //		cout << "Numero de vezes que mostrei dessa vez :: " <<
 //		this->g_cylinder(which_cylinder(cluster)).g_track(which_track(cluster)).g_cluster(cluster - which_cylinder(cluster) * 150 - which_track(cluster) * 15).g_eof() << endl;
 		free(i);
 	}
+	fclose(fp);
 	cout << endl;
 }
 
