@@ -1,0 +1,63 @@
+\hypertarget{classSector}{}\section{Sector Class Reference}
+\label{classSector}\index{Sector@{Sector}}
+
+
+Unidades basicas de armazenamento (num HD orientado a setores)  
+
+
+
+
+{\ttfamily \#include $<$estruturas.\+hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classSector_acba0ffc50e70c7b4dac61a190d26b019}{Sector} ()\hypertarget{classSector_acba0ffc50e70c7b4dac61a190d26b019}{}\label{classSector_acba0ffc50e70c7b4dac61a190d26b019}
+
+\begin{DoxyCompactList}\small\item\em \mbox{[}512\mbox{]}; \end{DoxyCompactList}\item 
+const char $\ast$ {\bfseries g\+\_\+byte\+\_\+s} ()\hypertarget{classSector_ab5d1a8835ec6b6ca219747f792079748}{}\label{classSector_ab5d1a8835ec6b6ca219747f792079748}
+
+\item 
+bool {\bfseries g\+\_\+eof} ()\hypertarget{classSector_a0de4324c638872ff7f81899257883fe7}{}\label{classSector_a0de4324c638872ff7f81899257883fe7}
+
+\item 
+int {\bfseries g\+\_\+last\+\_\+valid} ()\hypertarget{classSector_aaa5f0478cd5e73cf792a98c73772e0ec}{}\label{classSector_aaa5f0478cd5e73cf792a98c73772e0ec}
+
+\item 
+ui {\bfseries insert\+\_\+last} (const string \&, const ui \&, int)\hypertarget{classSector_a3de8da2bad055e2b4cd3d665633053b6}{}\label{classSector_a3de8da2bad055e2b4cd3d665633053b6}
+
+\item 
+ui \hyperlink{classSector_a934dc752fbfb2b98075c500904b2ca6b}{insert} (const char $\ast$, const ui \&, const ui \&, string)
+\begin{DoxyCompactList}\small\item\em cluster, posicao do setor, last valid position \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Unidades basicas de armazenamento (num HD orientado a setores) 
+
+\subsection{Member Function Documentation}
+\index{Sector@{Sector}!insert@{insert}}
+\index{insert@{insert}!Sector@{Sector}}
+\subsubsection[{\texorpdfstring{insert(const char $\ast$, const ui \&, const ui \&, string)}{insert(const char *, const ui &, const ui &, string)}}]{\setlength{\rightskip}{0pt plus 5cm}ui Sector\+::insert (
+\begin{DoxyParamCaption}
+\item[{const char $\ast$}]{cluster, }
+\item[{const ui \&}]{next, }
+\item[{const ui \&}]{pos, }
+\item[{string}]{op = {\ttfamily string(\char`\"{}\char`\"{})}}
+\end{DoxyParamCaption}
+)}\hypertarget{classSector_a934dc752fbfb2b98075c500904b2ca6b}{}\label{classSector_a934dc752fbfb2b98075c500904b2ca6b}
+
+
+cluster, posicao do setor, last valid position 
+
+class \hyperlink{classSector}{Sector}
+
+private public pos == 0,1,2,3 (nº do setor NO cluster) \begin{DoxyVerb}CAGUEI! Sa porra fica dando SEMPRE this->used == 1. Como?!?!
+\end{DoxyVerb}
+ / if(this-\/$>$used $>$ 0)\{cout$<$$<$ this-\/$>$used $<$$<$ \char`\"{} Erro\+: sobreposicao de setores\textbackslash{}n\char`\"{};throw 1.\+1;\}
+
+Ou seja, todos os bytes do setor sao utilizados 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+estruturas.\+hpp\item 
+estruturas.\+cpp\end{DoxyCompactItemize}

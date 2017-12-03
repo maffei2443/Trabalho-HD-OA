@@ -90,9 +90,6 @@ ui FatTable :: alloc_nxt(ui cluster, ui track, ui cylinder){
 		bool it = true;
 		for(j = track + 1; alloc == false; j++){
 			j %= 5;
-			cout << "Checando : " << i + 15 * j + 75 * k << endl;
-			printf("%u %u %u\n", i, j, k );
-//			getchar();
 			if(j == 0 and it == false){				// Passou pela ultima trilha; passar ao proximo cluster 
 									// da primeira trilha do mesmo cilindro.
 					break;
@@ -122,17 +119,13 @@ ui FatTable :: alloc_nxt(ui cluster, ui track, ui cylinder){
 		}
 		
 		debug++;
-		if(debug > 750)	{cout << "Erro em FatTable :: alloc_nxt" << debug << "\n";}
+		if(debug > 750)	{cout << "Erro em FatTable :: alloc_nxt" << debug << "\n";	throw 99;}
 	}
-	cout << "Alocou " << onde << endl;
 	return onde;
 }
 
 vector<ui> FatTable :: alloc_space(const string& file, ui size){
-	cout << "Clusters livres ANTES:: " << (750 - usado) << endl;
-	cout << "Size recebido : "<< size << endl;
 	ui qtt = (int) ceil((float)((int)size) / (int)Qtt::CLUSTER);		// Pega o nº do cluster necessarios
-	cout << "Em termos de clusters: " << qtt << endl;
 	
 	// Checa para ver se ainda cabe nos clusters restantes.
 	if((this->usado + qtt) > 750)	{cout << "!!!!!!!!!! HD nao suporta mais tal arquivo !!!!!!!!!!" << endl;	return vector<ui>(0);}
@@ -186,12 +179,8 @@ vector<ui> FatTable :: alloc_space(const string& file, ui size){
 	// Parametros sao as posicoes do cluster predecessor.
 	next = alloc_nxt(where_cluster, where_treck, where_cylinder);	// Proximo cilindro alocado para insercao.
 	// assert(qtt >= 2)
-	cout << "First :: " << first << endl;
 	while( qtt > 0 ){	// Inserir o resto do arquivo.
 		lista.push_back( first );
-		printf("push_back (loop) == %u\n", first);
-//		printf("next == %u\n", next);
-		printf("usdou :: %u\n", first);
 		this->clusters[first] = true;
 		this->fatent[first] = FatEnt(true, false, next);
 
@@ -199,21 +188,15 @@ vector<ui> FatTable :: alloc_space(const string& file, ui size){
 		where_cylinder = which_cylinder(first);
 		where_treck = which_track(first);
 		where_cluster = first - where_cylinder * 75 - where_treck * 15;
-		printf("Parametros mandados :: %u %u %u\n",where_cluster, where_cylinder, where_cylinder );
 		next = alloc_nxt(where_cluster, where_treck, where_cylinder);
-		printf("Proximo : %u\n", next);
 
 		qtt--;
 	}
 	where_cylinder = which_cylinder(next);
 	where_treck = which_track(next);
 	where_cluster = next - where_cylinder * 75 - where_treck * 15;
-	cout << "Geladeira :: " << first << endl;
-	printf("first == %u\n", first);
-	printf("next == %u\n", next);
 	this->clusters[next] = true;
 	this->fatent[next] = FatEnt(true, false, first);
-//		next = alloc_nxt(where_cluster, where_treck, where_cylinder);
 
 	// Inserir o ultimo setor; calcular também seu tamanho exato
 //*
@@ -222,14 +205,7 @@ vector<ui> FatTable :: alloc_space(const string& file, ui size){
 	lista.push_back( first );
 	this->unused.erase( first );
 	this->used.insert( first );
-	printf("pushed_back(out_loop1) == %u\n", first);
-//*/
-	// Todo os cluster na tbela fat adequadamente enumerados
-	
-	for(auto it = lista.cbegin(); it != lista.cend(); it++)
-		cout << "Cluster ocupado : " << (*it) << endl;
-	cout << "Clusters alocados :: " << lista.size() << endl;
-	
+	// Todo os clusters na tsbela fat adequadamente enumerados
 end:
 	double tempoGravacao = write_time( lista );
 	cout << "Tempo de gravacao == " << tempoGravacao << "ms" << endl;
@@ -245,23 +221,16 @@ bool FatTable :: free_space(const string& get_out){
 	vector <ui> lista;
 	for(auto it = this->fatlist.begin(); it != this->fatlist.end() and !found; it++){
 		if( (*it).g_file_name() == get_out ){
+			lista = g_clusters_list(get_out);
 			found = true;
-			cout << "Esperado :: SIM encontrar o arquivo\n";
-			lista = this->g_clusters_list(get_out);			
 			(*it) = Fatlist();		// Reseta objeto; pra poder usar novamente
-			cout << "Esperado :: NAO encontrar o arquivo\n";
-			auto lixo = this->g_clusters_list(get_out);
 //			getchar();
 		}
 		else
 			index++;
 	}
-
 	if(found == true){
 
-		cout << "Na funcao [FatTable :: free_space]\n";
-		cout << "Arquivo foi ENNCONTRADO\n";
-		cout << "Vamos exluir o arrquivo...\n";
 		this->fatlist[index] = Fatlist();		// Para representar
 		this->fatlist_reuse.insert(index);
 		this->usado = this->usado - lista.size();
@@ -278,12 +247,10 @@ bool FatTable :: free_space(const string& get_out){
 		view :: arquivo_nao_encontrado();
 		return false;
 	}
-	cout << "Apagou arquivo na funcao FatTable :: free_space\n";
 	return true;
 }
 
 vector<ui> FatTable :: clusters_file(const string& file){
-	if(file == file)	cout << "ok\n" ;
 	bool again = true;
 	vector<ui> ordem(0);
 	for(auto x = fatlist.begin(); x != fatlist.end()
@@ -291,7 +258,6 @@ vector<ui> FatTable :: clusters_file(const string& file){
 		Fatlist aux2 = (*x);
 		string aux = aux2.g_file_name();
 		if( aux == file ){	//    Encontrou o arquivo
-			cout << "Opa! Cabeça em " << aux2.g_first_cluster() << endl;
 			ui cluster = (*x).g_first_cluster();
 			while(this->fatent[cluster].eof == false){
 				ordem.push_back(cluster);
@@ -311,7 +277,6 @@ vector<ui> FatTable ::  g_clusters_list(const string& file){
 	for(auto it = this->fatlist.begin(); it != this->fatlist.end() and again; it++){
 		if( (*it).g_file_name() == file){
 			first = (*it).g_first_cluster();
-//			cout << "Encontrou o arquivo.\nfirst == " << first << endl;;
 			again = false;
 		}
 	}
@@ -324,21 +289,16 @@ vector<ui> FatTable ::  g_clusters_list(const string& file){
 		throw 120;
 	}
 	vector<ui> lista(0);
-//	cout << "Primeiro cluster do arquivo : " << first << endl;
-
 	if(this->fatent[first].eof == true);	// Caso especial de arquivo com apenas um cluster		
 	else{
 		bool eof;
 		do{
-	//		cout << "first == " << first << endl;
 			lista.push_back(first);
 			first = this->fatent[first].next;
 			eof = this->fatent[first].eof;
 		}while(eof == false);
 	}
 	lista.push_back( first );
-	//	cout << "first == " << first << endl;
-//	getchar();
 	return lista;
 }
 
@@ -383,7 +343,6 @@ void FatTable :: show(){
 		cout << "\nt_leitura == " << tempoLeitura  << "ms" << endl;
 		cout << "n_clusters :: " << lista.size() << endl;
 		long unsigned int aux = name.size();
-//		cout << "size == " << name.size() << endl;
 		for(int i = 0; i < (20 - aux); i++ )
 			name += " ";
 		printf("%s\t%lu Bytes\t\t", name.c_str(),  lista.size() * Qtt :: CLUSTER);
@@ -393,7 +352,7 @@ void FatTable :: show(){
 		for(auto it2 = lista.cbegin(); it2 != lista.cend(); ){
 			mod ++;
 			mod %= 5;
-			for(int i = 0;i < 4; i++)
+			for(int i = 0;i < 4; i++)		// Calcula os setores a serem mostrados.
 				vet[clust++] = ((*it2) + i);
 			
 			printf("%u", (*it2));
@@ -457,26 +416,17 @@ ui Cluster :: insert(const char* cluster, const ui& next, string op = string("")
 		this->eof = Qtt :: CLUSTER;		
 	}
 	else{	// Ultimo setor
-//		cout << "Cluster :: insert <<<>>> Ultimo clusterrr \n";
 		this->next = -1;
 		this->eof = next;	// polimorfismo a nivel de parametro :o
 		ui i;
-/*		cout << "eof == " << eof << endl;
-		cout << "Qtt :: SECTOR == " << Qtt :: SECTOR << endl;
-		cout << "What?????!?! eof % Qtt :: SECTOR == " << (next / Qtt :: SECTOR) << endl;
 //*/
 		for(i = 0; i < (eof / Qtt :: SECTOR) ; i++)			// Inserir em cada um dos setores
 			this->sector[i].insert(cluster, next, i);
-//		cout << "Cluster :: insert <<<>>> Ultimo setorrr\n";
 		this->sector[i].insert(cluster, eof - i * Qtt :: SECTOR, i, op);
 		return true;
 	}
-//	cout << "this->next " << this->next << endl;
-//	cout << "next " << next << endl;
-	
 	for(ui i = 0; i < this->MAX; i++)			// Inserir em cada um dos setores
 		this->sector[i].insert(cluster, next, i);
-
 	return true;
 }
 
@@ -495,14 +445,6 @@ char* Cluster :: g_cluster_content(){
 		if(this->sector[i].g_eof() == true)
 			i = MAX;
 	}
-//	cout << "Testando conteudo do cluster\n";
-/*	for(ui i = 0; i < MAX; i++){
-		memset(ret, eof, '\0');
-		for(int k = 0; k < this->sector[i].g_last_valid(); k++)
-			cout << ret[k + i * Qtt :: SECTOR];
-	}
-	cout << endl;//*/
-//	getchar();
 	return ret;
 }
 
@@ -527,8 +469,6 @@ ui Track :: insert(const char* cluster, ui now, const ui& next, string op = stri
 	
 	this->used++;
 	this->s_full();
-//	cout << "cluster usados na track :: " << this->used << endl;
-//	cout << "Saiu de Track :: insert\n";
 	return true;
 }
 
@@ -547,22 +487,18 @@ bool Cylinder :: s_full(){
 	ui i = 0;
 	for(auto x = this->full_tracks.begin(); x != this->full_tracks.end(); x++ ){
 		if( (*x) > 14 )	i++;
-		//cout << "Trilha com " << (*x) << " clusters\n";
 	}
 	
-//	cout << "Trilhas cheias :: " << i << endl << endl;
 	return this->full;
 }
 
 // public
 
 ui Cylinder :: insert(const char* cluster, ui first, const ui& next, string op = string("")){	// TODO: implementar isso de verdade.
-//	if(this->full == true){cout << "LLotadaoO!\n";	return false;}
 
 	ui div = Qtt :: TRACK / Qtt :: CLUSTER;
 	ui where = which_track(first);
 
-//	cout << "Trilha de insercao :: " << where << endl;
 	if(this->track[where].insert(cluster, first - where * div, next, op));
 	else	cout << ">>> Erro em Cylinder :: insert\n";
 	
@@ -576,7 +512,6 @@ char* Cylinder :: g_cluster_content(ui first){
 	ui div = Qtt :: TRACK / Qtt :: CLUSTER;
 	ui where = which_track(first);
 
-//	cout << "\nTrilha de busca :: " << where << endl;
 	auto x = this->track[where].g_cluster_content(first - where * div);
 	return x;
 }
@@ -598,9 +533,7 @@ bool HardDrive :: set_full(  ){
 }
 
 ui HardDrive :: insert_file(const string& file, ui size){
-	cout << "[HardDrive :: insert_file]INSERINDO ... \n";
 	vector<ui> to_put = this->fat.alloc_space(file, size);
-	cout << "Clusters retornados :: " << to_put.size() << endl;
 	if(to_put.size() == 0){
 		cout << "[HardDrive :: insert_file] Erro : HD jah contem arquivo de mesmo nome.\n";
 		cout << "ou\n";
@@ -618,49 +551,27 @@ ui HardDrive :: insert_file(const string& file, ui size){
 	char cluster[Qtt :: CLUSTER];
 	FILE *fp = fopen(file.c_str(), "r");
 	ui offset = 0;					// Começa lendo a partir do inicio do arquivo.
-//	ui div = (Qtt :: HARDDRIVE / Qtt :: CYLINDER) * (Qtt :: TRACK / Qtt :: CLUSTER);	//150
 	ui div = 75;
 	for(; j < ultimo ; j++){	
-//		printf("SEEKZAO %u\n", j);
 		fread(cluster, Qtt :: CLUSTER, 1, fp);
 		fseek(fp, Qtt :: CLUSTER, offset);
 		offset += Qtt :: CLUSTER;
 		size -= Qtt :: CLUSTER;
-//		for(int i = 0; i < Qtt :: CLUSTER; i++)		// $$$$$
-//			cout << cluster[i];
-
-//		cout << "cluster de insercao == " << to_put[j] << endl;
-//		printf("Insere....\n");
-//		printf("to_put[j] == %u\n", to_put[j]);
 		ui where = which_cylinder( to_put[j] );
-//		printf("Sucesso %u\n", where);
-
-//		cout << "cilindro de insercao :: " << where << endl;
 		if( !this->cylinder[where].insert( cluster, to_put[j] - where * div, to_put[j+1] ))	{cout << "Cylinder :: insert com problemas\n";	fclose(fp);throw 100;}
 	}
-//	cout << "Final dos SEEKS" << endl;
 	// Inserir caso especial; ou seja, o ULTIMO cluster, que pode ser setores disperdiçados :/	
-//	cout << "ULTIMO cluster de insercao == " << to_put[j] << endl;
 	ui where = which_cylinder( to_put[j] );
-//	cout << "ULTIMO cilindro de insercao :: " << where << endl;
 	
 	char last_cluster[size];
 	fread(last_cluster, size, 1, fp);
-//		for(int i = 0; i < size; i++);
-//			cout << last_cluster[i];
-//	cout << sizeof(last_cluster) << endl;
 
 	string arg("last");
 	if( !this->cylinder[where].insert( last_cluster, to_put[j] - where * div, size, arg ) )	{cout << "Cylinder :: insert com problemas\n";}
-//	getchar();
 	printf("\n");
 	fclose(fp);
 }
-/*
-char* HardDrive ::  g_cluster_content(ui first){
-	return this->g_cylinder( which_cylinder(first) ).g_cluster_content(first);
-}
-*/
+
 // public
 
 ui HardDrive :: insert_file(){
@@ -671,16 +582,13 @@ ui HardDrive :: insert_file(){
 	char file[100];
 	getchar();
 	scanf("%[^\n]s", file);
-	cout << "Nome do arquivo lido :: " << file << endl;
 
 	ifstream arq (file, ifstream :: binary);
 	ui length = 0;
 
 	if(arq){
-//		cout << "Yes, arquivo existe\n";
 	    arq.seekg (0, arq.end);
 		length = arq.tellg(); 
-//		cout << length << endl;
 		if(length == 0)
 			cout << "Arquivo nao existe ou tem tamanho nulo.\n";
 	}
@@ -691,10 +599,8 @@ ui HardDrive :: insert_file(){
 
 
 	int ret = insert_file(file, length);
-//	cout << "Retornou da funcao insert_file(file)\n";
 	if(ret == false)	cout << "Oops! Sem espaço de armazenamento disponivell\n";
 	else if (ret == -1)	cout << "Oops! Arquivo de mesmo nome jah existente\n";
-//	else	cout << "Insercao bem-sucedida !!!\n";
 	return true;
 }
 
@@ -713,27 +619,17 @@ void HardDrive :: show_file(){
 	cin >> file;
 	auto lista = this->fat.g_clusters_list(file);
 	if(lista.size() == 0){cout << "Arquivo NAO ENCONTRADO!!\n";	return;}
-//	cout << "DEBUGGIN :: tamanho da lista == " << lista.size() << endl;
 	string arq("");
-//	cout << "Erro logico?\n";
 	FILE * fp = fopen((file + "_cpy") .c_str(), "w+");
 	int pp = 0;
 	for(auto it = lista.begin(); it != lista.end(); it++){
 		ui cluster = (*it);
-//		printf("%s\n", );
 		Cluster cl = this->g_cylinder(which_cylinder(cluster)).g_track(which_track(cluster)).g_cluster(cluster - which_cylinder(cluster) * 75 - which_track(cluster) * 15);
 		char * i =  cl.g_cluster_content();
 		ui eof = cl.g_eof();
 		for(int l = 0; l < eof; l++){			
 			fprintf(fp, "%c", i[l]);
-//			printf("%c", i[l]);
-		}
-	
-//		getchar();
-
-//		printf("\n");
-//		cout << "Numero de vezes que mostrei dessa vez :: " <<
-//		this->g_cylinder(which_cylinder(cluster)).g_track(which_track(cluster)).g_cluster(cluster - which_cylinder(cluster) * 150 - which_track(cluster) * 15).g_eof() << endl;
+		}	
 		free(i);
 	}
 	fclose(fp);

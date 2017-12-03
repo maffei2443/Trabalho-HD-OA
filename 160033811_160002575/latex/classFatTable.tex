@@ -1,0 +1,157 @@
+\hypertarget{classFatTable}{}\section{Fat\+Table Class Reference}
+\label{classFatTable}\index{Fat\+Table@{Fat\+Table}}
+
+
+Collaboration diagram for Fat\+Table\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=136pt]{classFatTable__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classFatTable_a848a7e9e14bd9d24fcfb48449fdfae77}{Fat\+Table} ()
+\begin{DoxyCompactList}\small\item\em class Fat\+Eent \end{DoxyCompactList}\item 
+ui \hyperlink{classFatTable_ae5bcce7262ced6cab5a164c40307c350}{insert} (const char $\ast$name, const ui \&size)\hypertarget{classFatTable_ae5bcce7262ced6cab5a164c40307c350}{}\label{classFatTable_ae5bcce7262ced6cab5a164c40307c350}
+
+\begin{DoxyCompactList}\small\item\em fatent.\+resize(0);\} \end{DoxyCompactList}\item 
+bool {\bfseries g\+\_\+full} ()\hypertarget{classFatTable_a0cbc50b29715a3b78322072dc5e18138}{}\label{classFatTable_a0cbc50b29715a3b78322072dc5e18138}
+
+\item 
+vector$<$ ui $>$ \hyperlink{classFatTable_a566150049a050b7add0046800995bf06}{alloc\+\_\+space} (const string \&, ui)
+\item 
+bool \hyperlink{classFatTable_a1e1637f54b2cc7a6c436a3c8dd86f990}{free\+\_\+space} (const string \&)
+\item 
+ui {\bfseries g\+\_\+unused} ()\hypertarget{classFatTable_a7b290d7cbffd8ee2fb1deb5c84188c0e}{}\label{classFatTable_a7b290d7cbffd8ee2fb1deb5c84188c0e}
+
+\item 
+vector$<$ ui $>$ \hyperlink{classFatTable_a81b335ad0538ee26afd7db168516ab08}{clusters\+\_\+file} (const string \&)
+\item 
+vector$<$ ui $>$ \hyperlink{classFatTable_a30f820bb48f85776482ac5248735fdd2}{g\+\_\+clusters\+\_\+list} (const string \&)
+\item 
+void \hyperlink{classFatTable_a45b8a123cf7f9124a950aa27d9aa9e28}{show} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+vector$<$ \hyperlink{classFatlist}{Fatlist} $>$ {\bfseries fatlist}\hypertarget{classFatTable_aa6ba21e5bfde8f742c4fe3f181a44aa2}{}\label{classFatTable_aa6ba21e5bfde8f742c4fe3f181a44aa2}
+
+\item 
+\hyperlink{classFatEnt}{Fat\+Ent} {\bfseries fatent} \mbox{[}750\mbox{]}\hypertarget{classFatTable_a23728b70a23aa0f3311837e04159220e}{}\label{classFatTable_a23728b70a23aa0f3311837e04159220e}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{Fat\+Table@{Fat\+Table}!Fat\+Table@{Fat\+Table}}
+\index{Fat\+Table@{Fat\+Table}!Fat\+Table@{Fat\+Table}}
+\subsubsection[{\texorpdfstring{Fat\+Table()}{FatTable()}}]{\setlength{\rightskip}{0pt plus 5cm}Fat\+Table\+::\+Fat\+Table (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{classFatTable_a848a7e9e14bd9d24fcfb48449fdfae77}{}\label{classFatTable_a848a7e9e14bd9d24fcfb48449fdfae77}
+
+
+class Fat\+Eent 
+
+class \hyperlink{classFatTable}{Fat\+Table} , fatent(0)\{
+
+C\+AN\textquotesingle{}T BE \textquotesingle{}0\textquotesingle{} 
+
+\subsection{Member Function Documentation}
+\index{Fat\+Table@{Fat\+Table}!alloc\+\_\+space@{alloc\+\_\+space}}
+\index{alloc\+\_\+space@{alloc\+\_\+space}!Fat\+Table@{Fat\+Table}}
+\subsubsection[{\texorpdfstring{alloc\+\_\+space(const string \&, ui)}{alloc_space(const string &, ui)}}]{\setlength{\rightskip}{0pt plus 5cm}vector$<$ ui $>$ Fat\+Table\+::alloc\+\_\+space (
+\begin{DoxyParamCaption}
+\item[{const string \&}]{file, }
+\item[{ui}]{size}
+\end{DoxyParamCaption}
+)}\hypertarget{classFatTable_a566150049a050b7add0046800995bf06}{}\label{classFatTable_a566150049a050b7add0046800995bf06}
+Pega o nº do cluster necessarios
+
+Checa para ver se ainda cabe nos clusters restantes.
+
+Encontra o cluster adequado para a primeira posicao. C\+Luster encontrado.
+
+Checa se existe arquivo de mesmo nome. Se sim, R\+E\+T\+U\+RN.
+
+Nao tem espaço para reaproveitar no vetor de nomes.
+
+Reaproveita o espaço e
+
+remove esse espaço dos livres para reuso.
+
+Lista contendo os cluter ussados
+
+Arquivo vazio ou com tam $<$ \hyperlink{classQtt}{Qtt} \+:\+: C\+L\+U\+S\+T\+ER
+
+Lista de posicoes do cluster do arquivo recebido
+
+used = true, eof = true, next = -\/1 (valor qqer)
+
+Parametros sao as posicoes do cluster predecessor.
+
+Proximo cilindro alocado para insercao.
+
+assert(qtt $>$= 2)
+
+Inserir o resto do arquivo.
+
+Inserir o ultimo setor; calcular também seu tamanho exato
+
+
+\begin{DoxyItemize}
+\item 
+\end{DoxyItemize}
+
+used = true, eof = false, next = -\/1
+
+Todo os clusters na tsbela fat adequadamente enumerados \index{Fat\+Table@{Fat\+Table}!clusters\+\_\+file@{clusters\+\_\+file}}
+\index{clusters\+\_\+file@{clusters\+\_\+file}!Fat\+Table@{Fat\+Table}}
+\subsubsection[{\texorpdfstring{clusters\+\_\+file(const string \&)}{clusters_file(const string &)}}]{\setlength{\rightskip}{0pt plus 5cm}vector$<$ ui $>$ Fat\+Table\+::clusters\+\_\+file (
+\begin{DoxyParamCaption}
+\item[{const string \&}]{file}
+\end{DoxyParamCaption}
+)}\hypertarget{classFatTable_a81b335ad0538ee26afd7db168516ab08}{}\label{classFatTable_a81b335ad0538ee26afd7db168516ab08}
+Encontrou o arquivo \index{Fat\+Table@{Fat\+Table}!free\+\_\+space@{free\+\_\+space}}
+\index{free\+\_\+space@{free\+\_\+space}!Fat\+Table@{Fat\+Table}}
+\subsubsection[{\texorpdfstring{free\+\_\+space(const string \&)}{free_space(const string &)}}]{\setlength{\rightskip}{0pt plus 5cm}bool Fat\+Table\+::free\+\_\+space (
+\begin{DoxyParamCaption}
+\item[{const string \&}]{get\+\_\+out}
+\end{DoxyParamCaption}
+)}\hypertarget{classFatTable_a1e1637f54b2cc7a6c436a3c8dd86f990}{}\label{classFatTable_a1e1637f54b2cc7a6c436a3c8dd86f990}
+Reseta objeto; pra poder usar novamente
+
+getchar();
+
+Para representar
+
+\hyperlink{classCluster}{Cluster} livre para reuso
+
+\hyperlink{classCluster}{Cluster} livre novamente \+:) \index{Fat\+Table@{Fat\+Table}!g\+\_\+clusters\+\_\+list@{g\+\_\+clusters\+\_\+list}}
+\index{g\+\_\+clusters\+\_\+list@{g\+\_\+clusters\+\_\+list}!Fat\+Table@{Fat\+Table}}
+\subsubsection[{\texorpdfstring{g\+\_\+clusters\+\_\+list(const string \&)}{g_clusters_list(const string &)}}]{\setlength{\rightskip}{0pt plus 5cm}vector$<$ ui $>$ Fat\+Table\+::g\+\_\+clusters\+\_\+list (
+\begin{DoxyParamCaption}
+\item[{const string \&}]{file}
+\end{DoxyParamCaption}
+)}\hypertarget{classFatTable_a30f820bb48f85776482ac5248735fdd2}{}\label{classFatTable_a30f820bb48f85776482ac5248735fdd2}
+cout $<$$<$ \char`\"{}\+Buscando por \+:: \char`\"{} $<$$<$ file $<$$<$ endl;
+
+Caso especial de arquivo com apenas um cluster \index{Fat\+Table@{Fat\+Table}!show@{show}}
+\index{show@{show}!Fat\+Table@{Fat\+Table}}
+\subsubsection[{\texorpdfstring{show()}{show()}}]{\setlength{\rightskip}{0pt plus 5cm}void Fat\+Table\+::show (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{classFatTable_a45b8a123cf7f9124a950aa27d9aa9e28}{}\label{classFatTable_a45b8a123cf7f9124a950aa27d9aa9e28}
+Para depois imprimir os setores \+:/
+
+Calcula os setores a serem mostrados. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+estruturas.\+hpp\item 
+estruturas.\+cpp\end{DoxyCompactItemize}
