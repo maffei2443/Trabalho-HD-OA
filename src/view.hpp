@@ -19,7 +19,7 @@ namespace view{
 	void escreve_HD_virtual();
 	void le_HD_virtual();
 	void apaga_HD_virtual();
-	void mostra_FAT();	// Devvve receber a TABELA FA como parametro
+	void mostra_FAT();	/// Devvve receber a TABELA FA como parametro
 	void empty_FAT();
 
 	void lotado_HD();
